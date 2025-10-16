@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HOBI CO.GALAXY - COMICS</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #e7dce8; margin: 0; }
+    header { background: #800f78; padding: 20px; text-align: center; }
+    header h1 { color: #ffffff; margin-bottom: 10px; }
+    nav a { color: white; margin: 0 10px; text-decoration: none; font-weight: bold; }
+    nav a:hover { color: #fff200; }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; padding: 20px; }
+    .card { background: white; border-radius: 20px; box-shadow: 0 8px 12px rgba(0,0,0,0.1); padding: 18px; text-align: center; transition: transform 0.2s ease-in-out; position: relative; overflow: hidden; }
+    .card:hover { transform: scale(1.05); }
+
+    .card img { width: 100%; height: 395px; object-fit: cover; border-radius: 6px; display: block; }
+
+    .info-hover {
+      position: absolute;
+      bottom: 18px;
+      left: 18px;
+      right: 18px;
+      background: rgba(128, 15, 120, 0.9);
+      color: white;
+      padding: 10px;
+      opacity: 0;
+      border-radius: 6px;
+      transition: opacity 0.3s ease;
+    }
+
+    .card:hover .info-hover { opacity: 1; }
+
+    .btn, .btn-vermas {
+      background: #800f78; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; color: white;
+    }
+    .btn:hover, .btn-vermas:hover { background: #a32994; color: #fff200; }
+
+    footer { background: #800f78; color: white; text-align: center; padding: 15px; margin-top: 30px; }
+
+    /* Modal */
+    .modal {
+      display: none; position: fixed; z-index: 10;
+      left: 0; top: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6); justify-content: center; align-items: center;
+    }
+    .modal-content {
+      background: white; padding: 20px; border-radius: 10px; width: 90%; max-width: 400px; text-align: center;
+    }
+    .close { float: right; font-size: 20px; cursor: pointer; color: #800f78; }
+    .close:hover { color: red; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1><strong>HOBI CO. GALAXY - COMICS</strong></h1>
+    <nav>
+      <a href="../index.html">INICIO 🏠</a>
+      <a href="#">MARVEL 🕷</a>
+      <a href="#">DC 🦇</a>
+      <a href="#">CARRITO 🛒</a>
+    </nav>
+  </header>
+
+  <main>
+    <h2 style="text-align:center; margin:20px 0;">COMICS DESTACADOS</h2>
+    <div class="grid" id="comicGrid"></div>
+  </main>
+
+  <footer>
+    &copy; 2025 Hobi Co. Galaxy - Tienda Geek y Comics
+  </footer>
+
+  <!-- Modal -->
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="cerrarModal()">&times;</span>
+      <h3 id="modalTitulo"></h3>
+      <p id="modalDescripcion"></p>
+    </div>
+  </div>
+
+  <script>
+    const comics = [
+      {titulo: "Spider-Man: Homecoming", precio: 45000, img: "../imagenes/comics/spdey.jpg", descBreve: "El regreso de Spidey al MCU.", descCompleta: "Spider-Man enfrenta nuevos desafíos mientras intenta equilibrar su vida como Peter Parker y héroe."},
+      {titulo: "Batman: The Killing Joke", precio: 50000, img: "../imagenes/comics/batman.jpg", descBreve: "La historia más oscura de Batman.", descCompleta: "Una obra maestra que explora el origen del Joker y la dualidad entre locura y cordura."},
+      {titulo: "Avengers: Infinity War", precio: 60000, img: "../imagenes/comics/avengers.jpg", descBreve: "La batalla definitiva por el universo.", descCompleta: "Los Vengadores unen fuerzas para detener a Thanos y evitar el fin de toda la existencia."},
+      {titulo: "Iron Man: Extremis", precio: 40000, img: "../imagenes/comics/iron.jpg", descBreve: "El renacimiento del hombre de hierro.", descCompleta: "Tony Stark actualiza su tecnología con un suero biotecnológico que redefine su poder."},
+      {titulo: "Superman: Red Son", precio: 55000, img: "../imagenes/comics/superpibe.jpg", descBreve: "¿Y si Superman hubiera caído en la URSS?", descCompleta: "Una versión alternativa donde el Hombre de Acero crece bajo el comunismo soviético."},
+      {titulo: "X-Men: Dark Phoenix Saga", precio: 47000, img: "../imagenes/comics/xmen.jpg", descBreve: "El poder absoluto de Jean Grey.", descCompleta: "La historia trágica de cómo la Fénix oscura consume a una heroína."},
+      {titulo: "Captain America: Winter Soldier", precio: 52000, img: "../imagenes/comics/america.jpg", descBreve: "Una amistad rota por el tiempo.", descCompleta: "Steve Rogers enfrenta un enemigo del pasado: su viejo amigo Bucky Barnes."},
+      {titulo: "Justice League: Origin", precio: 49000, img: "../imagenes/comics/league.jpg", descBreve: "El nacimiento de la Liga de la Justicia.", descCompleta: "Los héroes más grandes de la Tierra se unen por primera vez para salvar el mundo."},
+      {titulo: "Thor: God of Thunder", precio: 53000, img: "../imagenes/comics/thor.jpg", descBreve: "El dios del trueno contra su destino.", descCompleta: "Thor enfrenta a Gorr, el carnicero de dioses, en una lucha épica a través del tiempo."},
+      {titulo: "Wonder Woman: Earth One", precio: 48000, img: "../imagenes/comics/woman.jpg", descBreve: "La amazona como nunca la viste.", descCompleta: "Una nueva versión moderna del origen de Diana de Themyscira."},
+      {titulo: "Doctor Strange: The Oath", precio: 50000, img: "../imagenes/comics/doctor.jpg", descBreve: "El hechicero enfrenta su lado humano.", descCompleta: "Strange busca una cura para su fiel amigo Wong mientras enfrenta dilemas éticos."},
+      {titulo: "Aquaman: Throne of Atlantis", precio: 46000, img: "../imagenes/comics/agua.jpg", descBreve: "El rey del océano regresa.", descCompleta: "Arthur Curry lucha entre su deber como rey y su humanidad."},
+      {titulo: "Hulk: Planet Hulk", precio: 54000, img: "../imagenes/comics/hulk.jpg", descBreve: "El monstruo se convierte en gladiador.", descCompleta: "Hulk es exiliado a un planeta hostil donde se convierte en un héroe legendario."},
+      {titulo: "Flashpoint", precio: 55000, img: "../imagenes/comics/flash.jpg", descBreve: "Cuando Barry cambia el pasado...", descCompleta: "Flash altera la línea temporal y crea un mundo completamente nuevo."},
+      {titulo: "Black Panther: A Nation Under Our Feet", precio: 47000, img: "../imagenes/comics/black.jpg", descBreve: "Wakanda bajo fuego.", descCompleta: "T’Challa lucha por mantener la unidad de su reino frente a la rebelión."},
+      {titulo: "Green Lantern: Rebirth", precio: 49000, img: "../imagenes/comics/green.jpg", descBreve: "La luz regresa al universo.", descCompleta: "Hal Jordan redime su nombre y vuelve a portar el anillo del poder."},
+      {titulo: "Guardians of the Galaxy: Cosmic Avengers", precio: 50000, img: "../imagenes/comics/clean.jpg", descBreve: "Un equipo fuera de este mundo.", descCompleta: "Star-Lord y su grupo de inadaptados defienden el cosmos a su manera."},
+      {titulo: "Shazam!: The Monster Society of Evil", precio: 46000, img: "../imagenes/comics/shazam.jpg", descBreve: "Magia y diversión sin límites.", descCompleta: "Billy Batson descubre el poder de la palabra mágica SHAZAM."},
+      {titulo: "Deadpool: Merc with a Mouth", precio: 52000, img: "../imagenes/comics/dead.jpg", descBreve: "El antihéroe más divertido.", descCompleta: "Deadpool combina acción y humor negro en una historia única."},
+      {titulo: "Suicide Squad: Kicked in the Teeth", precio: 50000, img: "../imagenes/comics/squad.PNG", descBreve: "Villanos al servicio del gobierno.", descCompleta: "Harley Quinn, Deadshot y más son forzados a trabajar como equipo suicida."},
+      {titulo: "Wolverine: Old Man Logan", precio: 56000, img: "../imagenes/comics/logan.jpg", descBreve: "Un futuro donde los héroes cayeron.", descCompleta: "Logan vive en un mundo dominado por villanos, pero su espíritu aún arde."},
+      {titulo: "Harley Quinn: Hot in the City", precio: 45000, img: "../imagenes/comics/harly.jpg", descBreve: "La payasa más rebelde de Gotham.", descCompleta: "Harley comienza su vida independiente en una historia loca y brillante."},
+      {titulo: "Avengers vs X-Men", precio: 58000, img: "../imagenes/comics/vs.jpg", descBreve: "Héroes contra héroes.", descCompleta: "Una guerra civil entre los Vengadores y los mutantes."},
+      {titulo: "Batman: Hush", precio: 60000, img: "../imagenes/comics/goat.jpg", descBreve: "El misterio que atormenta a Batman.", descCompleta: "Un nuevo enemigo parece saber todos los secretos de Bruce Wayne."},
+      {titulo: "Iron Man: Demon in a Bottle", precio: 49000, img: "../imagenes/comics/man.jpg", descBreve: "El lado humano de Tony Stark.", descCompleta: "Tony enfrenta su adicción mientras intenta seguir siendo Iron Man."},
+      {titulo: "Superman: For All Seasons", precio: 47000, img: "../imagenes/comics/s.jpg", descBreve: "El corazón del Hombre de Acero.", descCompleta: "Una historia emotiva que explora las etapas de la vida de Clark Kent."},
+      {titulo: "X-Men: Days of Future Past", precio: 55000, img: "../imagenes/comics/xxx.jpg", descBreve: "Un futuro que debe cambiar.", descCompleta: "Los X-Men luchan contra un futuro dominado por los Centinelas."},
+      {titulo: "Justice League: Darkseid War", precio: 51000, img: "../imagenes/comics/just.jpg", descBreve: "Los dioses contra los héroes.", descCompleta: "Darkseid regresa, y los héroes deberán enfrentarlo en una guerra divina."},
+      {titulo: "Thor: Ragnarok Prelude", precio: 48000, img: "../imagenes/comics/omg.jpg", descBreve: "El fin de los dioses se acerca.", descCompleta: "Una antesala a la batalla definitiva de Asgard."},
+      {titulo: "Green Arrow: Year One", precio: 46000, img: "../imagenes/comics/arrow.jpg", descBreve: "El nacimiento de un arquero legendario.", descCompleta: "Oliver Queen aprende a sobrevivir y se convierte en héroe tras naufragar."}
+    ];
+
+    const grid = document.getElementById("comicGrid");
+
+    comics.forEach(c => {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <div style="position: relative;">
+          <img src="${c.img}" alt="${c.titulo}">
+          <div class="info-hover">
+            <p>${c.descBreve}</p>
+            <button class="btn-vermas" onclick="verMas('${c.titulo}')">Ver más</button>
+          </div>
+        </div>
+        <h3>${c.titulo}</h3>
+        <p>Precio: $${c.precio}</p>
+        <button class="btn" onclick="agregarCarrito('${c.titulo}')">AGREGAR AL CARRITO</button>
+      `;
+      grid.appendChild(card);
+    });
+
+    function agregarCarrito(nombre) {
+      alert(nombre + " agregado al carrito ✅");
+    }
+
+    function verMas(titulo) {
+      const p = comics.find(x => x.titulo === titulo);
+      document.getElementById("modalTitulo").innerText = p.titulo;
+      document.getElementById("modalDescripcion").innerText = p.descCompleta;
+      document.getElementById("modal").style.display = "flex";
+    }
+
+    function cerrarModal() {
+      document.getElementById("modal").style.display = "none";
+    }
+
+    window.onclick = function(e) {
+      const modal = document.getElementById("modal");
+      if (e.target === modal) modal.style.display = "none";
+    }
+  </script>
+</body>
+</html>

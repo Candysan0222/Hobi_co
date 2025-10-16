@@ -1,0 +1,116 @@
+body {
+  background-color: #0a0024;
+  color: #fff;
+  font-family: 'Poppins', sans-serif;
+  overflow-x: hidden;
+}
+
+.bg-dark-custom {
+  background-color: #12013b;
+}
+
+.logo {
+  height: 70px;
+}
+
+.brand-name {
+  font-weight: bold;
+  color: #ffc800;
+  font-size: 1.3rem;
+}
+
+/* --- HERO SECTION --- */
+.hero {
+  position: relative;
+  height: 90vh;
+  background: url('../Imagenes/fondo.png') center center / cover no-repeat;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+
+/* Fondo decorativo galáctico */
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url('https://cdn.pixabay.com/photo/2021/05/09/14/40/robot-6240560_1280.png'),
+                    url('https://cdn.pixabay.com/photo/2020/06/10/09/10/star-5280854_1280.png'),
+                    url('https://cdn.pixabay.com/photo/2016/10/19/19/20/star-1757538_1280.png'),
+                    url('https://cdn.pixabay.com/photo/2016/03/31/18/54/wave-1297982_1280.png');
+  background-repeat: no-repeat;
+  background-position: 10% 40%, 90% 30%, 70% 70%, center bottom;
+  background-size: 120px, 60px, 80px, cover;
+  opacity: 0.35;
+  animation: float 20s infinite linear alternate;
+}
+
+/* Capa de color y brillo */
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(18, 1, 59, 0.05), rgba(10, 0, 36, 0.9));
+  z-index: 1;
+}
+
+.hero h1, .hero p, .hero a {
+  position: relative;
+  z-index: 2;
+}
+
+@keyframes float {
+  0% {
+    background-position: 10% 40%, 90% 30%, 70% 70%, center bottom;
+  }
+  100% {
+    background-position: 12% 35%, 87% 25%, 65% 75%, center bottom;
+  }
+}
+
+/* --- BOTONES Y TEXTO --- */
+.btn-galaxy {
+  background-color: #ff00cc;
+  color: #fff;
+  border: none;
+  border-radius: 30px;
+  padding: 10px 25px;
+  transition: 0.3s;
+}
+
+.btn-galaxy:hover {
+  background-color: #ffc800;
+  color: #12013b;
+}
+
+.text-galaxy {
+  color: #ff00cc;
+  text-shadow: 0 0 10px #ff00cc;
+}
+
+/* --- TARJETAS --- */
+.card-galaxy {
+  background-color: #1b004b;
+  border: 2px solid #ff00cc;
+  border-radius: 15px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-galaxy:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px #ff00cc;
+}
+
+.card-galaxy img {
+  border-top-left-radius: 15px;
+  border-top-right-radius: 15px;
+  height: 200px;
+  object-fit: cover;
+}
+
+.footer-custom {
+  background-color: #12013b;
+  border-top: 2px solid #ff00cc;
+}

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>HOBI CO.GALAXY-POSTERS</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #e7dce8; margin: 0; }
+    header { background: #800f78; padding: 20px; text-align: center; }
+    header h1 { color: #ffffff; margin-bottom: 10px; }
+    nav a { color: white; margin: 0 10px; text-decoration: none; font-weight: bold; }
+    nav a:hover { color: #fff200; }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; padding: 20px; }
+
+    .card {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 8px 12px rgba(0,0,0,0.1);
+      padding: 18px;
+      text-align: center;
+      transition: transform 0.2s ease-in-out;
+    }
+    .card:hover { transform: scale(1.05); }
+
+    .image-container {
+      position: relative;
+      overflow: hidden;
+      border-radius: 10px;
+    }
+
+    .card img {
+      width: 100%;
+      height: 395px;
+      object-fit: cover;
+      border-radius: 10px;
+      display: block;
+    }
+
+    /* franja inferior dentro de la imagen (aparece al hover) */
+    .info-hover {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(128,15,120,0.9);
+      color: white;
+      padding: 10px;
+      transform: translateY(100%);
+      transition: transform 0.28s ease;
+      border-radius: 0 0 10px 10px;
+      text-align: left;
+    }
+
+    .image-container:hover .info-hover {
+      transform: translateY(0);
+    }
+
+    .info-hover p {
+      margin: 0 0 8px 0;
+      font-size: 14px;
+      line-height: 1.2;
+    }
+
+    .btn, .btn-vermas {
+      background: #800f78;
+      border: none;
+      padding: 8px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      color: white;
+    }
+
+    .btn:hover, .btn-vermas:hover {
+      background: #a32994;
+      color: #fff200;
+    }
+
+    .card h3 { margin: 10px 0; font-size: 20px; }
+    .card p.price { margin: 6px 0 10px 0; }
+
+    footer {
+      background: #800f78;
+      color: white;
+      text-align: center;
+      padding: 15px;
+      margin-top: 30px;
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6);
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 480px;
+      text-align: left;
+      position: relative;
+    }
+    .modal-content h3 { margin-top: 0; }
+    .close {
+      position: absolute;
+      right: 12px;
+      top: 8px;
+      font-size: 20px;
+      cursor: pointer;
+      color: #800f78;
+      border: none;
+      background: transparent;
+    }
+    .close:hover { color: #ff0000; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1><div><strong>&nbsp; &nbsp; &nbsp;HOBI CO. GALAXY - POSTERS</strong></div></h1>
+    <nav>
+      <a href="../index.html">INICIO 🏠</a>
+      <a href="#">PELICULAS 🎬</a>
+      <a href="#">JUEGOS 🎮</a>
+      <a href="#">CARRITO 🛒</a>
+    </nav>
+  </header>
+
+  <main>
+    <h2 style="text-align:center; margin:20px 0;">POSTERS DESTACADOS</h2>
+    <div class="grid" id="posterGrid"></div>
+  </main>
+
+  <footer>
+    &copy; 2025 Hobi Co. Galaxy - Tienda Geek y Posters
+  </footer>
+
+  <!-- Modal para descripción completa -->
+  <div id="modal" class="modal" aria-hidden="true">
+    <div class="modal-content" role="dialog" aria-modal="true">
+      <button class="close" onclick="cerrarModal()" aria-label="Cerrar">&times;</button>
+      <h3 id="modalTitulo"></h3>
+      <p id="modalDescripcion"></p>
+    </div>
+  </div>
+
+  <script>
+    const posters = [
+      {titulo: "Poster Avengers Endgame", precio: 35000, img: "../imagenes/posters/end.png", breve: "La batalla final de los Vengadores.", completa: "Una épica historia que marca el fin de una era en el universo cinematográfico Marvel."},
+      {titulo: "Poster Batman Dark Knight", precio: 32000, img: "../imagenes/posters/batman.jpeg", breve: "El Caballero de la Noche en acción.", completa: "Batman enfrenta al Joker en una lucha psicológica y moral por el alma de Gotham."},
+      {titulo: "Poster Spider-Man Homecoming", precio: 30000, img: "../imagenes/posters/spedy.png", breve: "El joven arácnido vuelve a casa.", completa: "Peter Parker aprende lo que significa ser un héroe bajo la guía de Iron Man."},
+      {titulo: "Poster Doctor Strange", precio: 34000, img: "../imagenes/posters/doctor.jpg", breve: "El hechicero supremo entra en escena.", completa: "Stephen Strange domina las artes místicas para proteger el multiverso."},
+      {titulo: "Poster Iron Man", precio: 31000, img: "../imagenes/posters/iron.jpg", breve: "El héroe tecnológico favorito.", completa: "Tony Stark demuestra que el verdadero poder está en la mente, no solo en la armadura."},
+      {titulo: "Poster Captain America Civil War", precio: 33000, img: "../imagenes/posters/cap.png", breve: "El conflicto entre héroes comienza.", completa: "Los ideales de los héroes se enfrentan en una historia donde la lealtad y la justicia se ponen a prueba."},
+      {titulo: "Poster de el GOAT 🐐", precio: 150000, img: "../imagenes/posters/goatt.jpg", breve: "Edición especial del GOAT.", completa: "Poster collector con acabado premium, homenaje al mejor de todos los tiempos."},
+      {titulo: "Poster Wonder Woman 1984", precio: 31000, img: "../imagenes/posters/womann.jpg", breve: "La amazona en los 80s.", completa: "Diana Prince regresa con colores vibrantes y acción clásica en este póster retro."},
+      {titulo: "Poster Aquaman", precio: 30000, img: "../imagenes/posters/aguaa.jpg", breve: "El rey de los mares.", completa: "Arte espectacular de Aquaman con detalles marinos y una paleta oceánica."},
+      {titulo: "Poster Red Dead Redemption", precio: 31000, img: "../imagenes/posters/red.jpg", breve: "Western moderno en tu pared.", completa: "Póster inspirado en la épica narrativa del oeste y la libertad del horizonte."},
+      {titulo: "Poster Deadpool", precio: 29000, img: "../imagenes/posters/dead.jpg", breve: "Humor y acción sin filtro.", completa: "Deadpool rompe la cuarta pared en un póster cargado de irreverencia y color."},
+      {titulo: "Poster Joker", precio: 35000, img: "../imagenes/posters/joker.jpg", breve: "Oscuridad y psicología en arte.", completa: "Un póster intenso que captura la complejidad y la locura del villano más famoso."},
+      {titulo: "Poster Black Panther", precio: 33000, img: "../imagenes/posters/panter.jpg", breve: "Orgullo de Wakanda.", completa: "Diseño elegante que rinde homenaje a la cultura y estética de Wakanda."},
+      {titulo: "Poster Guardians of the Galaxy", precio: 32000, img: "../imagenes/posters/galaxy.jpg", breve: "Aventura cósmica y humor.", completa: "Un póster colorido con el equipo más impredecible del universo."},
+      {titulo: "Poster Capitan America", precio: 31000, img: "../imagenes/posters/ame.jpg", breve: "El símbolo del valor.", completa: "Steve Rogers en pose heroica, con su escudo como centro del diseño."},
+      {titulo: "Poster The Last of Us", precio: 28000, img: "../imagenes/posters/the.jpg", breve: "Sobrevivencia y emoción.", completa: "Joel y Ellie en un paisaje postapocalíptico; estilo cinematográfico y emotivo."},
+      {titulo: "Poster God of War", precio: 29000, img: "../imagenes/posters/do.jpg", breve: "Mitología y venganza.", completa: "Kratos y Atreus en una composición épica con tonos nórdicos intensos."},
+      {titulo: "Poster Halo Infinite", precio: 27000, img: "../imagenes/posters/jefe.jpg", breve: "El Jefe Maestro en acción.", completa: "Ilustración del Jefe Maestro lista para ocupar un lugar principal en tu colección."},
+      {titulo: "Poster GTA V", precio: 26000, img: "../imagenes/posters/gta.jpg", breve: "Los Santos en tu pared.", completa: "Una composición que recoge el estilo y el caos urbano característico del juego."},
+      {titulo: "Poster Crash", precio: 31000, img: "../imagenes/posters/crash.jpg", breve: "Nostalgia y diversión.", completa: "Diseño retro de Crash Bandicoot, ideal para gamers y coleccionistas."},
+      {titulo: "Poster Cyberpunk 2077", precio: 32000, img: "../imagenes/posters/ciber.jpg", breve: "Night City en tu habitación.", completa: "Estética futurista con neones y personajes emblemáticos del juego."},
+      {titulo: "Poster Assassin's Creed Valhalla", precio: 30000, img: "../imagenes/posters/as.jpg", breve: "Vikingos y conquista.", completa: "Eivor y paisajes nórdicos en un póster épico y detallado."},
+      {titulo: "Poster Resident Evil Village", precio: 29000, img: "../imagenes/posters/resid.jpg", breve: "Terror gótico moderno.", completa: "Atmosfera inquietante y personajes icónicos en un póster para fans del survival horror."},
+      {titulo: "Poster Fortnite", precio: 28000, img: "../imagenes/posters/fort.jpg", breve: "Color y batalla.", completa: "Un póster vibrante con los skins y escenarios más populares."},
+      {titulo: "Poster Call of Duty Modern Warfare", precio: 30000, img: "../imagenes/posters/cod.jpg", breve: "Realismo militar extremo.", completa: "Composición intensa que refleja la acción moderna y la adrenalina del combate."},
+      {titulo: "Poster Minecraft", precio: 27000, img: "../imagenes/posters/mine.jpg", breve: "Bloques y creatividad.", completa: "Arte minimalista de Minecraft para los constructores y fans del sandbox."},
+      {titulo: "Poster Elden Ring", precio: 34000, img: "../imagenes/posters/eld.jpg", breve: "Misterio y fantasía oscura.", completa: "Un póster que evoca el mundo sombrío y místico del juego."},
+      {titulo: "Poster Street Fighter", precio: 28000, img: "../imagenes/posters/stret.jpg", breve: "Lucha clásica de arcade.", completa: "Ryu, Ken y otros campeones en una composición dinámica y retro."},
+      {titulo: "Poster Mortal Kombat", precio: 29000, img: "../imagenes/posters/mortal.jpg", breve: "Kombate brutal y leyenda.", completa: "Arte potente y oscuro con los luchadores más emblemáticos de la saga."},
+      {titulo: "Poster League of Legends", precio: 27000, img: "../imagenes/posters/lol.jpg", breve: "Campeones en batalla.", completa: "Póster con campeones y efectos visuales para decorar tu zona gamer."}
+    ];
+
+    const grid = document.getElementById("posterGrid");
+
+    posters.forEach(poster => {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <div class="image-container">
+          <img src="${poster.img}" alt="${poster.titulo}">
+          <div class="info-hover">
+            <p>${poster.breve}</p>
+            <button class="btn-vermas" onclick="verMas('${escapeQuotes(poster.titulo)}')">Ver más</button>
+          </div>
+        </div>
+        <h3>${poster.titulo}</h3>
+        <p class="price">Precio: $${poster.precio}</p>
+        <button class="btn" onclick="agregarCarrito('${escapeQuotes(poster.titulo)}')">AGREGAR AL CARRITO</button>
+      `;
+      grid.appendChild(card);
+    });
+
+    function agregarCarrito(nombre) {
+      alert(nombre + " agregado al carrito ✅");
+    }
+
+    function verMas(titulo) {
+      // buscar póster por título
+      const poster = posters.find(p => p.titulo === unescapeQuotes(titulo));
+      if (!poster) return;
+      document.getElementById("modalTitulo").innerText = poster.titulo;
+      document.getElementById("modalDescripcion").innerText = poster.completa;
+      const modal = document.getElementById("modal");
+      modal.style.display = "flex";
+      modal.setAttribute("aria-hidden", "false");
+    }
+
+    function cerrarModal() {
+      const modal = document.getElementById("modal");
+      modal.style.display = "none";
+      modal.setAttribute("aria-hidden", "true");
+    }
+
+    window.onclick = function(e) {
+      const modal = document.getElementById("modal");
+      if (e.target === modal) cerrarModal();
+    }
+
+    // Helpers para evitar problemas con comillas en títulos al inyectar en atributos onclick
+    function escapeQuotes(str) {
+      return String(str).replace(/'/g, "\\'").replace(/"/g, '\\"');
+    }
+    function unescapeQuotes(s) {
+      // no-op en esta implementación; kept for symmetry if needed
+      return s;
+    }
+  </script>
+</body>
+</html>

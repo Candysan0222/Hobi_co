@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HOBI CO.GALAXY - Panel mejorado (expansible)</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #e7dce8; margin: 0; }
+    header { background: #800f78; padding: 20px; text-align: center; }
+    header h1 { color: #ffffff; margin-bottom: 10px; }
+    nav a { color: white; margin: 0 10px; text-decoration: none; font-weight: bold; }
+
+    .grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 20px; padding: 20px; }
+    @media (max-width:1200px){ .grid{ grid-template-columns: repeat(4,1fr);} }
+    @media (max-width:900px){ .grid{ grid-template-columns: repeat(3,1fr);} }
+    @media (max-width:600px){ .grid{ grid-template-columns: repeat(2,1fr);} }
+    @media (max-width:380px){ .grid{ grid-template-columns: 1fr; } }
+
+    .card { position: relative; background: white; border-radius: 20px; box-shadow: 0 8px 12px rgba(0,0,0,0.1); padding: 12px; text-align: center; transition: transform 0.18s ease-in-out; overflow: visible; }
+    .card:hover { transform: translateY(-4px); }
+    .card img { width: 100%; height: 170px; object-fit: cover; border-radius: 8px; }
+    .card h3 { margin: 8px 0 6px; font-size: 15px; }
+    .card p.price { margin: 6px 0 10px; font-weight: bold; }
+
+    /* Botón agregar al carrito siempre encima (clicable) */
+    .btn { background: #800f78; border: none; padding: 8px 10px; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; position: relative; z-index: 6; }
+    .btn:hover { background: #a32994; color: #fff200; }
+
+    /* Floating panel (insertado en body) */
+    .float-panel {
+      position: fixed;
+      width: 260px;
+      max-width: 90vw;
+      background: #ffffff;
+      color: #222;
+      border-radius: 10px;
+      padding: 12px;
+      box-shadow: 0 14px 40px rgba(0,0,0,0.2);
+      z-index: 99999;
+      display: none;
+      pointer-events: auto;
+      transition: opacity 160ms ease, transform 160ms ease;
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    .float-panel.show { display: block; opacity: 1; transform: translateY(0); }
+
+    .float-panel h4 { margin: 0 0 6px 0; font-size: 14px; }
+    .float-panel p { margin: 0 0 8px 0; font-size: 13px; color: #333; line-height: 1.2; max-height: 12em; overflow: auto; }
+    .float-panel .vermas { display: inline-block; background: #800f78; color: #fff; padding: 6px 8px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; }
+    .float-panel .vermas:hover { background: #a32994; }
+
+    /* adjustments for mobile */
+    @media (max-width:600px){ .float-panel{ width: 92%; left: 4% !important; top: auto !important; bottom: 12vh !important; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1><strong>&nbsp; &nbsp; &nbsp;HOBI CO. GALAXY - FIGURAS</strong></h1>
+    <nav>
+      <a href="#">INICIO 🏠</a>
+      <a href="#">PELICULAS 🎬</a>
+      <a href="#">JUEGOS 🎮</a>
+      <a href="#">ANIME 🈵️</a>
+      <a href="#">CARRITO 🛒</a>
+    </nav>
+  </header>
+
+  <main>
+    <h2 style="text-align:center; margin:20px 0;">FIGURAS DE ACCIÓN Y COLECCIÓN</h2>
+    <div class="grid" id="posterGrid"></div>
+  </main>
+
+  <footer>
+    &copy; 2025 Hobi Co. Galaxy - Tienda Geek y Friki
+  </footer>
+
+  <!-- Floating info panel: single element appended to body so it never gets covered by other cards -->
+  <div id="floatPanel" class="float-panel" role="dialog" aria-hidden="true">
+    <h4 id="fpTitle"></h4>
+    <p id="fpShort"></p>
+    <button id="fpVerMas" class="vermas">Ver más</button>
+  </div>
+
+<script>
+  const posters = [
+    {titulo: "Figura completa de Light Yagami y L de la serie Death Note de G.E.M.", precio: 782.898, img: "imagenes/DeathNote.jpg", descripcionCorta: "De «DEATH NOTE», que ha sido adaptada a diversos medios en todo el mundo y goza de gran popularidad, los personajes principales, Light Yagami y L, regresan en la serie GEM...", descripcion: "De «DEATH NOTE», que ha sido adaptada a diversos medios en todo el mundo y goza de gran popularidad, los personajes principales, Light Yagami y L, regresan en la serie GEM. La ilustración de la portada del volumen 5 de Jump Comics ha sido fielmente reproducida. Se trata de una representación tridimensional de los dos memorables personajes del anime, esposados juntos. Las esposas también vienen en dos tipos: una versión dinámica de PVC, como se muestra en la ilustración, y una cadena real, para que puedas divertirte cambiándolas."},
+    {titulo: "Serie G.E.M. Demon Slayer: Kimetsu no Yaiba Figura completa de Akaza", precio: 475.331, img: "imagenes/KimetsunoYaiba.jpg", descripcionCorta: "¡Akaza, de Demon Slayer, se une a la serie G.E.M.!...", descripcion: "¡Akaza, de Demon Slayer, se une a la serie G.E.M.! ¡MegaHouse presenta a Akaza como parte de la popular línea G.E.M. Series de Megahouse! Tamaño: 185 mm de alto (incluida la base) Figura sola: 175 mm de alto Material: PVC, ABS"},
+    {titulo: "ONE PIECE Nami Traje de baño Ver. 1/4 Figura completa", precio: 838.819, img: "imagenes/Nami.jpg", descripcionCorta: "¡Impresionante figura en traje de baño a escala 1/4 de Nami, de ONE PIECE!...", descripcion: "FREEing ofrece a los fans una magnífica figura B-Style de Nami, la navegante de los Piratas del Sombrero de Paja, con un look de bikini. Con una altura aproximada de 380 mm, cautiva con su brillante sonrisa, sus curvas proporcionadas y su esculpido minuciosamente detallado."},
+    {titulo: "Figura de acción Revoltech Himiko Toga de My Hero Academia", precio: 261.305, img: "imagenes/Toga.jpg", descripcionCorta: "¡La villana Toga Himiko, de la serie de anime para televisión «My Hero Academia», se une a la línea Revoltech! Su «quirk» es la capacidad de transformarse en la persona que absorbe al ingerir la sangre de otros...", descripcion: "¡La villana Toga Himiko, de la serie de anime para televisión «My Hero Academia», se une a la línea Revoltech! Su «quirk» es la capacidad de transformarse en la persona que absorbe al ingerir la sangre de otros. En esta Revoltech, hemos recreado su equipo de villana, que incluye una máscara equipada con una jeringa especializada en recolectar sangre para que pueda usar su «quirk» en la batalla, y una funda que contiene varios cuchillos. Con sus proporciones suaves y femeninas y la movilidad de todo el cuerpo, podrás disfrutar de su inocente vida cotidiana con las abundantes piezas faciales."},
+    {titulo: "Lucrea Mobile Suit Gundam 45.º aniversario x Hatsune Miku Hatsune Miku x 00 Gundam Figura completa 1/7", precio: 699.016, img: "imagenes/Miku.jpg", descripcionCorta: "Hatsune Miku une fuerzas con 00 Gundam en esta impresionante figura Lucrea a escala 1/7...", descripcion: "Hatsune Miku une fuerzas con 00 Gundam en esta impresionante figura Lucrea a escala 1/7. Megahouse da vida al diseño colaborativo de Ixy para el 45.º aniversario de Gundam con un delicado modelado y una base dinámica."},
+    {titulo: "Nendoroid Jujutsu Kaisen Satoru Gojo Versión del Instituto", precio: 134.211, img: "imagenes/Gojo.jpg", descripcionCorta: "«En todo el cielo y la tierra, solo yo soy el honrado». De la serie de anime «Jujutsu Kaisen Hidden Inventory / Premature Death» llega una figura Nendoroid de Satoru Gojo de cuando asistía al instituto Tokyo Jujutsu High School...", descripcion: "«En todo el cielo y la tierra, solo yo soy el honrado». De la serie de anime «Jujutsu Kaisen Hidden Inventory / Premature Death» llega una figura Nendoroid de Satoru Gojo de cuando asistía al instituto Tokyo Jujutsu High School. Expresiones faciales: Cara de confianza, Cara provocadora, Cara enfadada, Cara enfurruñada, Piezas opcionales: Gafas de sol, Koregusu, Teléfono móvil, Otras piezas opcionales para diferentes poses."},
+    {titulo: "S.H.Figuarts Super Saiyan Son Goku -Comienzan los juegos- Figura de acción de Dragon Ball Z", precio: 100.658, img: "imagenes/Goku.jpg", descripcionCorta: "¡SUPER SAIYAN SON GOKU de «Dragon Ball Z»...", descripcion: "¡SUPER SAIYAN SON GOKU de «Dragon Ball Z» regresa a S.H.Figuarts con un modelado completamente nuevo y luciendo su atuendo tal y como aparece en la saga Cell y posteriores!"},
+    {titulo: "Baki Hanma: Figura de acción de Yuujirou Hanma", precio: 452.962, img: "imagenes/Yujiro.jpg", descripcionCorta: "¡Ya está disponible la nueva figura de acción Baki Hanma...", descripcion: "¡Ya está disponible la nueva figura de acción Baki Hanma: Yujiro Hanma (Yuujirou Hanma) de Storm Collectibles!"},
+    {titulo: "Funko Figura de acción: Ruin - Eclipse - FNAF", precio: 65.885, img: "imagenes/Ecli.jpg", descripcionCorta: "¡Acércate a tus personajes favoritos de Five Nights at Freddy's antes de que se muevan! Figura de acción de captura Eclipse de Five Nights at Freddy's: Security Breach - Ruin in action...", descripcion: "¡Acércate a tus personajes favoritos de Five Nights at Freddy's antes de que se muevan! Figura de acción de captura Eclipse de Five Nights at Freddy's: Security Breach - Ruin in action. ¿Sobrevivirá tu colección a la incorporación de este personaje de Five Night's at Freddys? La figura de vinilo mide aproximadamente 5 pulgadas de alto. Advertencia: Peligro de asfixia. Coleccionable viene con piezas pequeñas. No apto para niños menores de 36 meses."},
+    {titulo: "Serie G.E.M. NARUTO Shippuden Sasuke Figura completa", precio: 171.068, img: "imagenes/Sasuke.jpg", descripcionCorta: "¡Sasuke Uchiha se une a la serie G.E.M. Palm-Sized de Naruto Shippuden!...", descripcion: "MegaHouse presenta a Sasuke Uchiha como parte de la popular línea G.E.M. Series Palm-Sized. Con una altura de 115 mm, esta figura prepintada captura a Sasuke en una tranquila pose de descanso, con su expresión serena y su detallado traje de combate fielmente esculpido."},
+    {titulo: "Gasha Portraits PREMIUM Asuka Langley Shikinami Evangelion 4 Pack BOX", precio: 88.457, img: "imagenes/Asuka.jpg", descripcionCorta: "¡Ya está disponible el nuevo Gasha Portraits PREMIUM...", descripcion: "¡Ya está disponible el nuevo Gasha Portraits PREMIUM Asuka Langley Shikinami Evangelion 4 Pack BOX de BANDAI!"},
+    {titulo: "Figura completa de Momo de la serie de anime «Dandadan» de TENITOL TV.", precio: 106.530, img: "imagenes/Momo.jpg", descripcionCorta: "¡Momo, del anime para televisión «Dandadan», aparece en TENITOL!...", descripcion: "¡Momo, del anime para televisión «Dandadan», aparece en TENITOL! «La pose de combate y la base original se han modelado a partir de las de la historia, y el familiar uniforme y los pendientes se han pintado con cuidado para recrear cada detalle. A pesar de su bajo precio, es un artículo muy satisfactorio. ¡No te olvides de añadir esta genial «Momo» a tu colección!."},
+    {titulo: "Figura de acción figma Aqua Konosuba", precio: 172.847, img: "imagenes/Aqua.jpg", descripcionCorta: "Figura de acción figma Aqua Konosuba Temporada 3, reedición...", descripcion: "Figura articulada figma Aqua Konosuba Temporada 3 Reedición Figura articulada de plástico pintado sin escala con soporte incluido. Aproximadamente 145 mm de altura."},
+    {titulo: "Sword Art Online la película -Progressive- Scherzo of Deep Night - Kirito y Asuna, figuras a escala 1/7", precio: 981.164, img: "imagenes/Kirito.jpg", descripcionCorta: "¡De la película «Sword Art Online the Movie -Progressive- Scherzo of Deep Night» llegan las figuras a escala de Kirito y Asuna!...", descripcion: "¡De la película «Sword Art Online the Movie -Progressive- Scherzo of Deep Night» llegan las figuras a escala de Kirito y Asuna! Las figuras representan a la pareja empuñando espadas en poses dinámicas. ¡No olvides añadirlos a tu grupo para vivir una aventura! Producto completo de plástico pintado a escala 1/7 con soporte incluido. Aproximadamente 235 mm de altura."},
+    {titulo: "Figura diorama de One Punch Man - Saitama", precio: 127.093, img: "imagenes/Saitama.jpg", descripcionCorta: "Figura coleccionable de Saitama, el calvo con capa...", descripcion: "¡Ya está disponible una figura de coleccion de Saitama, el calvo con capa, que captura el momento de la derrota del monstruo, con una base diorama para añadir profundidad!."},
+    {titulo: "Mob Psycho 100 III Shigeo Kageyama Figura completa", precio: 223.685, img: "imagenes/MOB.jpg", descripcionCorta: "¡Union Creative presenta...", descripcion: "¡Union Creative presenta una nueva figura de Shigeo Kageyama Mob Psycho 100 III!"},
+    {titulo: "Chara Bank - Assassination Classroom: Koro Sensei", precio: 47.278, img: "imagenes/Sensei.jpg", descripcionCorta: "¡Figura de colección de Koro Sensei del anime de Assassination Classroom!...", descripcion: "Figura de colección de Koro Sensei del anime de Assassination Classroom traido gracias Chara Bank de la mano con MegaHouse. Tamaño: aprox. 95 mm (ancho) x 89 mm (profundidad) x 140 mm (alto)"},
+    {titulo: "POP UP PARADE Monika Doki Doki Literature Club! Figure", precio: 96.387, img: "imagenes/Monika.jpg", descripcionCorta: "Esta figura de Monika, de la serie Doki Doki Literature Club!, forma parte de la línea POP UP PARADE de Good Smile Company. Es una figura pre-pintada y completamente ensamblada, con una altura aproximada de 18 cm (no a escala), fabricada en plástico...", descripcion: "Esta figura de Monika, de la serie Doki Doki Literature Club!, forma parte de la línea POP UP PARADE de Good Smile Company. Es una figura pre-pintada y completamente ensamblada, con una altura aproximada de 18 cm (no a escala), fabricada en plástico. Presenta a Monika en una pose alegre y dinámica, con gran atención a los detalles en el esculpido y la pintura. El set incluye la figura principal y una base para exhibición. Fue esculpida por Keita Tagami, con pintura a cargo de Tomofumi (WATANA BOX) y cooperación de Nendoron."},
+    {titulo: "2024 Diamond Select Toys Figura de acción Invincible en caja - Invincible", precio: 368.144, img: "imagenes/Imbecil.jpg", descripcionCorta: "La figura “2024 Diamond Select Toys Invincible Boxed Action Figure – Invincible” es una pieza de colección basada en el héroe Mark Grayson de Invincible...", descripcion:"La figura “2024 Diamond Select Toys Invincible Boxed Action Figure – Invincible” es una pieza de colección basada en el héroe Mark Grayson de Invincible. Viene en caja vitrificada, con diseño inspirado en la serie animada, múltiples articulaciones, accesorios intercambiables y presentación vistosa."},
+    {titulo: "Peluche del Capitán Pikachu Pokémon Edición Limitada", precio: 91.253, img: "imagenes/Pikachu.jpg", descripcionCorta: "¡Ya está disponible el nuevo peluche del Capitán Pikachu de Pokémon Company / Takara Tomy!...", descripcion: "¡Ya está disponible el nuevo peluche del Capitán Pikachu de Pokémon Company / Takara Tomy! Tamaño: 35,5 × 26 × 19 cm, 320 g. Material: poliéster/espuma de poliuretano (interior)."},
+    {titulo: "Nendoroid Chainsaw Man Makima", precio: 172.593, img: "imagenes/Makima.jpg", descripcionCorta: "«No necesito un perro que diga “no”»...", descripcion: "¡De la serie de anime «Chainsaw Man» llega una Nendoroid de Makima! Viene con tres caras intercambiables: una cara estándar, una cara sonriente y una cara con una boca triangular. La Nendoroid incluye una piruleta y su gabardina como piezas opcionales, lo que te permite recrear todo tipo de escenas de la serie en formato Nendoroid. ¡No olvides añadirla a tu colección junto con los demás Nendoroids de Chainsaw Man!"},
+    {titulo: "Ataque a los titanes - Titán colosal - Ichiban Kuji Ataque a los titanes- Mega Impact (Bandai Spirits)", precio: 775.121, img: "imagenes/Titan.webp", descripcionCorta: "Nueva figura del titán colosal de la conocida serie de anime Attack on Titan...", descripcion: "Esta figura pertenece a la franquicia Shingeki no Kyojin y es producida por Bandai Spirits. Se trata de un artículo tipo Prize, con unas dimensiones de 45 cm de altura (aproximadamente 17,55 pulgadas)."},
+    {titulo: "«Marvel» «Marvel Legends MAXIMUM» Figura de acción de 15 cm Hulk [Cómic]", precio: 284.690, img: "imagenes/Hulk.jpg", descripcionCorta: "Esta figura pertenece a la línea Marvel Legend de Hasbro, basada en el universo de Marvel Comics, y representa al personaje Hulk. Tiene una altura aproximada de 22 cm y cuenta con 30 puntos de articulación, lo que permite una gran variedad de poses...", descripcion: "Esta figura pertenece a la línea Marvel Legend de Hasbro, basada en el universo de Marvel Comics, y representa al personaje Hulk. Tiene una altura aproximada de 22 cm y cuenta con 30 puntos de articulación, lo que permite una gran variedad de poses. El set incluye la figura principal, 2 cabezas alternativas, un cohete, 3 piezas de efectos y 4 manos intercambiables. La cantidad máxima de compra es de 2 unidades por cuenta o dirección de envío. © 2025 MARVEL / Hasbro. All Rights Reserved."},
+    {titulo: "Figura compleja increíble Yamaguchi «SUPERMAN»", precio: 219.109, img: "imagenes/Supaman.jpg", descripcionCorta: "Esta figura pertenece a la línea Revoltech Amazing Yamaguchi de Kaiyodo, basada en Superman (DC Comics) y es esculpida por Katsuhisa Yamaguchi...", descripcion: "Esta figura pertenece a la línea Revoltech Amazing Yamaguchi de Kaiyodo, basada en Superman (DC Comics) y es esculpida por Katsuhisa Yamaguchi. Mide aproximadamente 17,5 cm de altura y está fabricada en PVC y ABS, con articulaciones de ABS y POM. El set incluye la figura principal, 8 manos opcionales, 4 rostros intercambiables, una capa de tela y una base de exhibición. La cantidad máxima de compra es de 3 unidades por cuenta o dirección de envío. © SUPERMAN and all related characters and elements (C)＆TM DC Comics. WB SHIELD：TM＆(C)WBEI.(s21)."},
+    {titulo: "S.H.Figuarts Frieren (Frieren: Beyond Journey's End)", precio: 274.014, img: "imagenes/frieren.jpg", descripcionCorta: "¡S.H.Figuarts «Frieren», de la serie de anime para televisión «Frieren: Beyond Journey's End», ha sido comercializada en la serie «S.H.Figuarts»!...", descripcion: "¡S.H.Figuarts «Frieren», de la serie de anime para televisión «Frieren: Beyond Journey's End», ha sido comercializada en la serie «S.H.Figuarts»! Frieren, una elfa que ha vivido más de mil años y derrotó al Rey Demonio como parte de un grupo heroico, ahora está disponible en la línea de productos S.H.Figuarts. Además de una amplia variedad de piezas intercambiables para el rostro y las muñecas, también se incluyen efectos mágicos (piezas). Se pueden utilizar algunos materiales blandos para crear poses impresionantes."},
+    {titulo: "Figura Nendoroid Hornet Hollow Knight: Silksong", precio: 139.904, img: "imagenes/cilantro.jpg", descripcionCorta: "¡Descubre un vasto reino encantado en Hollow Knight: Silksong! ¡De «Hollow Knight: Silksong» llega una Nendoroid de Hornet!...", descripcion: "Figura Nendoroid Hornet Hollow Knight: Silksong, fabricante: Goodsmile Company. Figura articulada pintada de ABS y PVC sin escala, con soporte incluido. Aproximadamente 130 mm de altura."},
+    {titulo: "Cuphead - Figura de acción de Mugman", precio: 196.232, img: "imagenes/Mug.jpg", descripcionCorta: "Figura de acción articulada de Mugman, el hermano azul de Cuphead, del videojuego del mismo nombre...", descripcion: "Esta figura mide aproximadamente 13,5 cm de altura (incluyendo la pajilla) y está fabricada en ABS, PVC y POM. El set incluye la figura principal, dos tipos de manos intercambiables (A y B) y piezas de ojos adicionales."},
+    {titulo: "Crash Bandicoot: Estatua de PVC de Crash Bandicoot de 23 cm", precio: 322.055, img: "imagenes/Crashito.jpg", descripcionCorta: "¡Ya está disponible la nueva estatua de PVC de Crash Bandicoot de 23 cm!...", descripcion: "Esta estatua de PVC de Crash Bandicoot es fabricada por First 4 Figures. Tiene una altura aproximada de 23 cm, y destaca por su nivel de detalle característico de la marca."},
+    {titulo: "Figura de acción Minecraft - Steve", precio: 38.433, img: "imagenes/maincra.jpg", descripcionCorta: "Esta figura representa a Steve, el icónico protagonista de Minecraft. Está diseñada con el característico estilo cúbico del juego, manteniendo los colores y detalles pixelados que lo identifican. La figura incluye...", descripcion: "Esta figura representa a Steve, el icónico protagonista de Minecraft. Está diseñada con el característico estilo cúbico del juego, manteniendo los colores y detalles pixelados que lo identifican. La figura incluye una pico como accesorio y un bloque de mineral, permitiendo recrear escenas clásicas de minería dentro del mundo del juego. Es ideal para fanáticos y coleccionistas que desean tener una representación física de uno de los personajes más emblemáticos de Minecraft."},
+    {titulo: "Figura de colección de Youtooz - Garfield fornido", precio: 116.229, img: "imagenes/Gatomamado.jpg", descripcionCorta: "Este es Garfield en su forma definitiva: su poder es inigualable. Ni se te ocurra enfrentarte a él, porque perderás.", descripcion: "Este es Garfield en su forma definitiva: su poder es inigualable. Ni se te ocurra enfrentarte a él, porque perderás. Garfield fornido se yergue con una altura de 11,4 cm. Aunque tiene la misma altura que el Garfield Youtooz normal, no se lo digas o herirás sus sentimientos. El exterior de su embalaje de doble pared muestra el interior de la cocina de su dueño, Jon, con bocadillos de pensamiento que salen de Garfield para arrojar más luz sobre qué tipo de gato es realmente. El interior es una mezcla en blanco y negro de viñetas de cómic con Garfield, Odie y Jon. La funda protectora también muestra las escenas del cómic con una saturación más oscura que el interior, con el logotipo de Garfield en la parte superior en letras rojas contrastantes. Este objeto de colección se envía en una funda protectora exterior mate y en relieve, y con un protector de plástico de tamaño personalizado para una máxima protección durante el envío."}
+  ];
+
+  const grid = document.getElementById('posterGrid');
+  const floatPanel = document.getElementById('floatPanel');
+  const fpTitle = document.getElementById('fpTitle');
+  const fpShort = document.getElementById('fpShort');
+  const fpVerMas = document.getElementById('fpVerMas');
+  const PANEL_W = 260; // px
+  let hideTimer = null;
+  let currentIndex = null;
+  let expanded = false; // si el panel está mostrando la descripción larga
+
+  posters.forEach((poster, index) => {
+    const card = document.createElement('div');
+    card.className = 'card';
+
+    const img = document.createElement('img'); img.src = poster.img; img.alt = poster.titulo;
+    const h3 = document.createElement('h3'); h3.textContent = poster.titulo;
+    const pPrice = document.createElement('p'); pPrice.className = 'price'; pPrice.textContent = 'Precio: $' + poster.precio;
+
+    const addBtn = document.createElement('button');
+    addBtn.className = 'btn';
+    addBtn.textContent = 'AGREGAR AL CARRITO';
+    addBtn.addEventListener('click', (e) => { e.stopPropagation(); agregarCarrito(poster.titulo); });
+
+    card.appendChild(img);
+    card.appendChild(h3);
+    card.appendChild(pPrice);
+    card.appendChild(addBtn);
+
+    // Hover logic: show floating panel positioned outside the card and above other elements
+    card.addEventListener('mouseenter', (e) => {
+      clearTimeout(hideTimer);
+      currentIndex = index;
+      expanded = false;
+      fpTitle.textContent = poster.titulo;
+      setShortText(poster);
+
+     // set ver mas handler to togglear entre expandir y colapsar
+fpVerMas.onclick = (ev) => {
+  ev.stopPropagation();
+  // si ya está expandido, colapsa; si no, expande
+  if (expanded) {
+    toggleExpand(false);
+  } else {
+    toggleExpand(true);
+  }
+};
+
+
+      // compute position relative to viewport (fixed panel)
+      const rect = card.getBoundingClientRect();
+      const spaceRight = window.innerWidth - rect.right;
+      const spaceLeft = rect.left;
+      let left, top;
+
+      // top relative to viewport: a bit below top of card
+      top = Math.max(8, rect.top + 8);
+
+      if (spaceRight >= PANEL_W + 12) {
+        // place to the right of the card
+        left = rect.right + 12;
+      } else if (spaceLeft >= PANEL_W + 12) {
+        // place to the left
+        left = rect.left - PANEL_W - 12;
+      } else {
+        // centered above/below card
+        left = rect.left + (rect.width - PANEL_W) / 2;
+        left = Math.max(8, Math.min(left, window.innerWidth - PANEL_W - 8));
+        // try above card first
+        top = rect.top - 8 - 140;
+        if (top < 8) top = rect.bottom + 8; // otherwise below
+      }
+
+      // apply position
+      floatPanel.style.left = Math.round(left) + 'px';
+      floatPanel.style.top = Math.round(top) + 'px';
+      floatPanel.classList.add('show');
+      floatPanel.setAttribute('aria-hidden', 'false');
+
+      // After shown, ensure it doesn't overflow bottom: recalc height and shift up if needed
+      requestAnimationFrame(() => {
+        const panelRect = floatPanel.getBoundingClientRect();
+        const overflow = panelRect.bottom - window.innerHeight + 8; // 8px margin
+        if (overflow > 0) {
+          // shift panel up but not above top
+          const newTop = Math.max(8, (parseFloat(floatPanel.style.top) || 0) - overflow);
+          floatPanel.style.top = Math.round(newTop) + 'px';
+        }
+      });
+    });
+
+    // start hide delay when leaving card
+    card.addEventListener('mouseleave', () => {
+      startHideTimer();
+    });
+
+    grid.appendChild(card);
+  });
+
+  // panel mouseenter cancels hide; mouseleave starts hide timer
+  floatPanel.addEventListener('mouseenter', () => { clearTimeout(hideTimer); });
+  floatPanel.addEventListener('mouseleave', () => { startHideTimer(); });
+
+  function setShortText(poster) {
+    const short = poster.descripcionCorta || (poster.descripcion || '').slice(0, 120) + '...';
+    fpShort.textContent = short;
+    fpVerMas.textContent = 'Ver más';
+    expanded = false;
+  }
+
+  function toggleExpand(toExpand) {
+    if (toExpand === undefined) toExpand = !expanded;
+    if (toExpand) {
+      // show full description in the panel
+      if (currentIndex === null) return;
+      fpShort.textContent = posters[currentIndex].descripcion || posters[currentIndex].descripcionCorta || '';
+      fpVerMas.textContent = 'Mostrar menos';
+      expanded = true;
+
+      // ensure panel fully visible after expanding
+      requestAnimationFrame(() => {
+        const panelRect = floatPanel.getBoundingClientRect();
+        const overflow = panelRect.bottom - window.innerHeight + 8;
+        if (overflow > 0) {
+          const newTop = Math.max(8, (parseFloat(floatPanel.style.top) || 0) - overflow);
+          floatPanel.style.top = Math.round(newTop) + 'px';
+        }
+      });
+    } else {
+      // collapse back to short
+      if (currentIndex === null) {
+        hidePanelImmediate();
+        return;
+      }
+      setShortText(posters[currentIndex]);
+    }
+  }
+
+  function startHideTimer(){
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(() => { hidePanelImmediate(); }, 500); // 500ms give user time to move & click
+  }
+  function hidePanelImmediate(){
+    clearTimeout(hideTimer);
+    floatPanel.classList.remove('show');
+    floatPanel.setAttribute('aria-hidden','true');
+    currentIndex = null;
+    expanded = false;
+    // clear inline positions to reset next time
+    floatPanel.style.left = '';
+    floatPanel.style.top = '';
+  }
+
+  // close if clicking anywhere else
+  document.addEventListener('click', (e) => {
+    if (!floatPanel.contains(e.target)) hidePanelImmediate();
+  });
+
+  function agregarCarrito(nombre){ alert(nombre + ' agregado al carrito ✅'); }
+</script>
+</body>
+</html>

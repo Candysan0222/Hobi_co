@@ -1,0 +1,182 @@
+body {
+      background-color: #0a0024;
+      color: #fff;
+      font-family: 'Poppins', sans-serif;
+      overflow-x: hidden;
+      margin: 0;
+      padding: 0;
+    }
+
+    .bg-dark-custom {
+      background-color: #12013b;
+    }
+
+    .logo {
+      height: 70px;
+    }
+
+    /* --- HERO CATEGORÍAS --- */
+    .hero-categories {
+      position: relative;
+      height: 40vh;
+      background: url('../Imagenes/fondoCategorias.jpg');
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .hero-categories::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: url('https://cdn.pixabay.com/photo/2020/06/10/09/10/star-5280854_1280.png'),
+                        url('https://cdn.pixabay.com/photo/2016/10/19/19/20/star-1757538_1280.png');
+      background-repeat: no-repeat;
+      background-position: 20% 30%, 80% 60%;
+      background-size: 80px, 100px;
+      opacity: 0.3;
+      animation: float 15s infinite linear alternate;
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, rgba(255, 0, 204, 0.1), rgba(10, 0, 36, 0.6));
+      z-index: 1;
+    }
+
+    .hero-categories h1, .hero-categories p {
+      position: relative;
+      z-index: 2;
+    }
+
+    @keyframes float {
+      0% {
+        background-position: 20% 30%, 80% 60%;
+      }
+      100% {
+        background-position: 25% 25%, 75% 65%;
+      }
+    }
+
+    .text-galaxy {
+      color: #ff00cc;
+      text-shadow: 0 0 10px #ff00cc;
+    }
+
+    /* --- CATEGORÍAS GRID --- */
+    .categories-section {
+      padding: 60px 0;
+      position: relative;
+    }
+
+    .category-card {
+      background-color: #1b004b;
+      border: 2px solid #ff00cc;
+      border-radius: 15px;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      overflow: hidden;
+      height: 100%;
+      cursor: pointer;
+    }
+
+    .category-card:hover {
+      transform: translateY(-10px) scale(1.03);
+      box-shadow: 0 0 30px #ff00cc, 0 0 60px rgba(255, 0, 204, 0.3);
+    }
+
+    .category-image {
+      width: 100%;
+      height: 250px;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+
+    .category-card:hover .category-image {
+      transform: scale(1.1);
+    }
+
+    .category-body {
+      padding: 20px;
+      background: linear-gradient(to bottom, #1b004b, #12013b);
+    }
+
+    .category-title {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #ffc800;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .category-description {
+      color: #e0e0e0;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .category-badge {
+      display: inline-block;
+      background-color: #ff00cc;
+      color: #fff;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    .btn-explore {
+      background-color: #ff00cc;
+      color: #fff;
+      border: none;
+      border-radius: 30px;
+      padding: 10px 25px;
+      transition: 0.3s;
+      text-decoration: none;
+      display: inline-block;
+      margin-top: 15px;
+      font-weight: 600;
+    }
+
+    .btn-explore:hover {
+      background-color: #ffc800;
+      color: #12013b;
+      box-shadow: 0 0 20px #ffc800;
+    }
+
+    /* --- FOOTER --- */
+    .footer-custom {
+      background-color: #12013b;
+      border-top: 2px solid #ff00cc;
+      padding: 20px 0;
+      margin-top: 60px;
+    }
+
+    /* --- EFECTOS ADICIONALES --- */
+    .glow-text {
+      animation: glow 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes glow {
+      from {
+        text-shadow: 0 0 10px #ff00cc, 0 0 20px #ff00cc;
+      }
+      to {
+        text-shadow: 0 0 20px #ff00cc, 0 0 30px #ff00cc, 0 0 40px #ff00cc;
+      }
+    }
+
+    /* --- RESPONSIVE --- */
+    @media (max-width: 768px) {
+      .hero-categories {
+        height: 30vh;
+      }
+      
+      .category-image {
+        height: 200px;
+      }
+    }

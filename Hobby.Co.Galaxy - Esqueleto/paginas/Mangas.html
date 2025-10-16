@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HOBI CO.GALAXY - Panel mejorado (expansible)</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #e7dce8; margin: 0; }
+    header { background: #800f78; padding: 20px; text-align: center; }
+    header h1 { color: #ffffff; margin-bottom: 10px; }
+    nav a { color: white; margin: 0 10px; text-decoration: none; font-weight: bold; }
+
+    .grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 20px; padding: 20px; }
+    @media (max-width:1200px){ .grid{ grid-template-columns: repeat(4,1fr);} }
+    @media (max-width:900px){ .grid{ grid-template-columns: repeat(3,1fr);} }
+    @media (max-width:600px){ .grid{ grid-template-columns: repeat(2,1fr);} }
+    @media (max-width:380px){ .grid{ grid-template-columns: 1fr; } }
+
+    .card { position: relative; background: white; border-radius: 20px; box-shadow: 0 8px 12px rgba(0,0,0,0.1); padding: 12px; text-align: center; transition: transform 0.18s ease-in-out; overflow: visible; }
+    .card:hover { transform: translateY(-4px); }
+    .card img { width: 100%; height: 170px; object-fit: cover; border-radius: 8px; }
+    .card h3 { margin: 8px 0 6px; font-size: 15px; }
+    .card p.price { margin: 6px 0 10px; font-weight: bold; }
+
+    /* Botón agregar al carrito siempre encima (clicable) */
+    .btn { background: #800f78; border: none; padding: 8px 10px; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; position: relative; z-index: 6; }
+    .btn:hover { background: #a32994; color: #fff200; }
+
+    /* Floating panel (insertado en body) */
+    .float-panel {
+      position: fixed;
+      width: 260px;
+      max-width: 90vw;
+      background: #ffffff;
+      color: #222;
+      border-radius: 10px;
+      padding: 12px;
+      box-shadow: 0 14px 40px rgba(0,0,0,0.2);
+      z-index: 99999;
+      display: none;
+      pointer-events: auto;
+      transition: opacity 160ms ease, transform 160ms ease;
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    .float-panel.show { display: block; opacity: 1; transform: translateY(0); }
+
+    .float-panel h4 { margin: 0 0 6px 0; font-size: 14px; }
+    .float-panel p { margin: 0 0 8px 0; font-size: 13px; color: #333; line-height: 1.2; max-height: 12em; overflow: auto; }
+    .float-panel .vermas { display: inline-block; background: #800f78; color: #fff; padding: 6px 8px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; }
+    .float-panel .vermas:hover { background: #a32994; }
+
+    /* adjustments for mobile */
+    @media (max-width:600px){ .float-panel{ width: 92%; left: 4% !important; top: auto !important; bottom: 12vh !important; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1><strong>&nbsp; &nbsp; &nbsp;HOBI CO. GALAXY - MANGAS</strong></h1>
+    <nav>
+      <a href="../index.html">INICIO 🏠</a>
+      <a href="#">PELICULAS 🎬</a>
+      <a href="#">JUEGOS 🎮</a>
+      <a href="#">ANIME 🈵️</a>
+      <a href="#">CARRITO 🛒</a>
+    </nav>
+  </header>
+
+  <main>
+    <h2 style="text-align:center; margin:20px 0;">MANGAS</h2>
+    <div class="grid" id="posterGrid"></div>
+  </main>
+
+  <footer>
+    &copy; 2025 Hobi Co. Galaxy - Tienda Geek y Friki
+  </footer>
+
+  <!-- Floating info panel: single element appended to body so it never gets covered by other cards -->
+  <div id="floatPanel" class="float-panel" role="dialog" aria-hidden="true">
+    <h4 id="fpTitle"></h4>
+    <p id="fpShort"></p>
+    <button id="fpVerMas" class="vermas">Ver más</button>
+  </div>
+
+<script>
+  const posters = [
+    { titulo: "One Piece", precio: 79900, img: "../imagenes/Mangas/Onep.jpg",
+      descripcionCorta: "Aventura shōnen de piratas centrada en Monkey D. Luffy y la búsqueda del tesoro “One Piece”.",
+      descripcion: "Escrita e ilustrada por Eiichiro Oda, es una serie serializada desde 1997 que sigue las peripecias de Luffy y su tripulación en mares, islas y conflictos políticos; mezcla aventura, comedia y fantasía épica. Su publicación en tomos continúa con ediciones tankōbon regulares."
+    },
+    { titulo: "Jujutsu Kaisen", precio: 39900, img: "imagenes/juju.webp",
+      descripcionCorta: "Fantasía oscura sobre estudiantes que luchan contra “Curses” (maldiciones).",
+      descripcion: "De Gege Akutami, la historia sigue a Yuji Itadori que se une a los hechiceros jujutsu para combatir maldiciones y contener a Sukuna; la obra tuvo gran crecimiento en ventas y se publica tanto en Weekly Shōnen Jump como en volúmenes tankōbon."
+    },
+    { titulo: "Chainsaw Man", precio: 49900, img: "imagenes/Denji.webp",
+      descripcionCorta: "Acción sobrenatural visceral con humor negro (protagonista que puede transformarse en motosierra).",
+      descripcion: "Escrita por Tatsuki Fujimoto, combina escenas de acción extrema, personajes singulares y crítica social; la primera parte fue recopilada en once volúmenes y la serie prosiguió en nuevas historias/partes publicadas posteriormente."
+    },
+    { titulo: "SPY×FAMILY", precio: 42900, img: "imagenes/spy.webp",
+      descripcionCorta: "Comedia de espionaje familiar: un espía monta una familia falsa cuyos miembros tienen secretos.",
+      descripcion: "De Tatsuya Endō, mezcla espionaje, slice-of-life y humor; Loid (espía), Yor (asesina) y Anya (telepática) conforman una familia llena de malentendidos que ha sido extremadamente popular y con múltiples reimpresiones."
+    },
+    { titulo: "My Hero Academia", precio: 44900, img: "imagenes/hero.webp",
+      descripcionCorta: "Superhéroes escolares: jóvenes entrenan para ser héroes en un mundo plagado de “Quirks”.",
+      descripcion: "De Kōhei Horikoshi, sigue a Izuku Midoriya/Deku y su formación en U.A. Academy; mezcla acción, temas de legado y crecimiento personal; la obra tuvo una recopilación de volúmenes extensa y sólida repercusión editorial."
+    },
+    { titulo: "Demon Slayer: Kimetsu no Yaiba", precio: 45900, img: "imagenes/demon.webp",
+      descripcionCorta: "Fantasía oscura sobre cazadores de demonios y el vínculo entre hermanos.",
+      descripcion: "Koyoharu Gotōge presenta la travesía de Tanjiro Kamado para curar a su hermana Nezuko y enfrentarse a los doce Lunas; la serie completa está recopilada en 23 tankōbon y fue un fenómeno de ventas global."
+    },
+    { titulo: "Attack on Titan (Shingeki no Kyojin)", precio: 54900, img: "imagenes/titan.webp",
+      descripcionCorta: "Distopía oscura donde la humanidad vive tras muros para protegerse de gigantes devoradores.",
+      descripcion: "De Hajime Isayama, aborda misterio, guerra y filosofía moral en una trama que terminó con recopilación completa de capítulos en volúmenes tankōbon; altamente influyente y con multitud de ediciones."
+    },
+    { titulo: "Haikyū!!", precio: 43900, img: "imagenes/pelota.webp",
+      descripcionCorta: "Manga deportivo sobre voleibol y trabajo en equipo centrado en Shōyō Hinata.",
+      descripcion: "De Haruichi Furudate, explora la competición, la técnica y el crecimiento personal en equipos escolares; la serie completa está editada en 45 volúmenes tankōbon y fue un gran éxito en ventas y adaptaciones animadas."
+    },
+    { titulo: "Blue Lock", precio: 38900, img: "imagenes/lock.jpg",
+      descripcionCorta: "Fútbol koncepcional donde se busca al mejor delantero nacional en un programa radical.",
+      descripcion: "Escrita por Muneyuki Kaneshiro e ilustrada por Yusuke Nomura, combina análisis táctico y psicología competitiva; su bonanza de ventas tras la adaptación animada la convirtió en un título con fuerte demanda y numerosas reimpresiones."
+    },
+    { titulo: "Oshi no Ko", precio: 46900, img: "imagenes/idol.webp",
+      descripcionCorta: "Drama/oscuro sobre el mundo del espectáculo, idols y secretos personales.",
+      descripcion: "Creado por Aka Akasaka (guion) y Mengo Yokoyari (dibujo), despliega un retrato crítico del entretenimiento, la ambición y las identidades públicas/privadas; la serie concluyó su serialización y tiene varios tomos recopilados por Shueisha."
+    },
+    { titulo: "Kaiju No. 8 (Monster #8)", precio: 47900, img: "imagenes/mostro.webp",
+      descripcionCorta: "Ciencia-ficción/acción sobre monstruos (kaiju) y el protagonista que puede transformarse en kaiju.",
+      descripcion: "Naoya Matsumoto combina acción, humor y drama en un contexto donde las fuerzas de defensa humana combaten kaiju; la serie se publicó en Shōnen Jump+ y sus volúmenes fueron muy vendidos."
+    },
+    { titulo: "Dandadan", precio: 36900, img: "imagenes/pit.webp",
+      descripcionCorta: "Combinación de terror, humor y acción con temas sobrenaturales y aliens.",
+      descripcion: "Yukinobu Tatsu mezcla géneros y gags con arcos sorpresivos; la popularidad del manga impulsó ventas fuertes de sus tomos recopilatorios en Shueisha."
+    },
+    { titulo: "Frieren: Beyond Journey's End", precio: 49900, img: "imagenes/elfa.webp",
+      descripcionCorta: "Fantasía reflexiva sobre una elfa que explora el paso del tiempo y la memoria tras una gran aventura.",
+      descripcion: "Kanehito Yamada y Tsukasa Abe presentan una obra melancólica que reflexiona sobre la vida después de la 'gran victoria'; premiada y con ventas sostenidas que se reflejan en sus volúmenes recopilatorios."
+    },
+    { titulo: "Tokyo Revengers", precio: 34900, img: "imagenes/tokyo.webp",
+      descripcionCorta: "Viajes en el tiempo y pandillas juveniles: redención y tragedia.",
+      descripcion: "De Ken Wakui, combina elementos de viaje temporal con dramas de pandillas adolescentes; fue un fenómeno comercial y mediático con volúmenes recopilados en torno a 31 tomos."
+    },
+    { titulo: "Vinland Saga", precio: 59900, img: "imagenes/saga.webp",
+      descripcionCorta: "Épica histórica inspirada en los vikingos y el crecimiento personal.",
+      descripcion: "Makoto Yukimura explora venganza, política y filosofía a través de Thorfinn; la serie lleva muchos años y sus volúmenes recopilatorios son numerosos y demandados."
+    },
+    { titulo: "Kingdom", precio: 69900, img: "imagenes/king.webp",
+      descripcionCorta: "Gran manga histórico de estrategia militar basado en la unificación de China.",
+      descripcion: "Yasuhisa Hara narra la vida de Xin y la unificación en la era de los Reinos Combatientes; es una serie de larga duración con docenas de volúmenes recopilados y altas cifras de impresión."
+    },
+    { titulo: "Black Clover", precio: 32900, img: "imagenes/black.webp",
+      descripcionCorta: "Aventura mágica shōnen sobre dos huérfanos que persiguen el sueño de ser Rey Mago.",
+      descripcion: "Yūki Tabata combina acción, competencia y crecimiento en un mundo mágico; los tomos recopilados se han publicado de forma continua y la obra mantiene ventas estables."
+    },
+    { titulo: "Dr. Stone", precio: 39900, img: "imagenes/stone.webp",
+      descripcionCorta: "Ciencia y supervivencia: reconstruir la civilización con ciencia tras un petrificado global.",
+      descripcion: "De Riichirō Inagaki y Boichi, mezcla divulgación científica con aventura; su recopilación en tankōbon alcanzó los mid-20s con ediciones y recopilaciones adicionales."
+    },
+    { titulo: "Undead Unluck", precio: 37900, img: "imagenes/dead.jpg",
+      descripcionCorta: "Acción fantástica con azar, poderes extraños y humor negro.",
+      descripcion: "Yoshifumi Tozuka creó una historia sobre Andy (inmortal) y Fuuko (que trae mala suerte) que combina batalla y comedia; la serialización se recopiló en varios volúmenes y la serie generó ventas sólidas."
+    },
+    { titulo: "My Dress-Up Darling", precio: 91253, img: "imagenes/cosplay.webp",
+      descripcionCorta: "Romance y cosplay: chico fabricante de muñecas y chica cosplayer.",
+      descripcion: "Shinichi Fukuda narra el vínculo entre Wakana (costurero) y Marin (cosplayer), con foco en la creación, la autoestima y el apoyo mutuo; la obra tuvo ediciones en inglés y tomos recopilados que alcanzan la quincena."
+    },
+    { titulo: "Blue Period", precio: 29900, img: "imagenes/periodo.webp",
+      descripcionCorta: "Coming-of-age sobre arte y la búsqueda de un joven por ingresar a Bellas Artes.",
+      descripcion: "Tsubasa Yamaguchi presenta una obra centrada en la formación artística, presión, técnica y vocación; ha sido recopilada en múltiples tomos y adaptada a otros medios."
+    },
+    { titulo: "Made in Abyss", precio: 39900, img: "imagenes/kid.webp",
+      descripcionCorta: "Aventura oscura en un abismo misterioso con bestias y reliquias.",
+      descripcion: "Akihito Tsukushi mezcla estética 'kawaii' con temas estremecedores y una trama de exploración; recopilada en varios tomos y con adaptaciones animadas que impulsaron ventas."
+    },
+    { titulo: "The Promised Neverland", precio: 31900, img: "imagenes/orange.webp",
+      descripcionCorta: "Thriller y escape: niños que descubren la verdad sobre su orfanato y planifican huir.",
+      descripcion: "Kaiu Shirai y Posuka Demizu crearon un thriller psicológico con giros y tensión, recopilado en 20 tankōbon; muy vendido y adaptado en anime y ediciones internacionales."
+    },
+    { titulo: "Berserk", precio: 64900, img: "imagenes/berserk.jpg",
+      descripcionCorta: "Dark fantasy adulto, violencia gráfica y épica personal centrada en Guts y Griffith.",
+      descripcion: "Creado por Kentarō Miura, obra clave del seinen oscuro; tras la muerte de Miura, la obra continuó bajo supervisión y se publicaron volúmenes adicionales en 2025."
+    },
+    { titulo: "Naruto", precio: 59900, img: "imagenes/naruto.jpeg",
+      descripcionCorta: "Aventura ninja que sigue a Naruto Uzumaki en su camino para ser Hokage.",
+      descripcion: "Masashi Kishimoto creó una de las sagas shōnen más vendidas; recopilada en 72 tankōbon, con múltiples reediciones y ediciones en varios idiomas."
+    },
+    { titulo: "Bleach", precio: 58900, img: "imagenes/Bleach.png",
+      descripcionCorta: "Combates sobrenaturales entre Shinigami y espíritus (Hollows).",
+      descripcion: "Tite Kubo mezcla acción, diseño visual y batallas épicas; la serie fue recopilada en 74 volúmenes tankōbon y sigue vendiéndose en ediciones y boxsets."
+    },
+    { titulo: "Gintama", precio: 44900, img: "imagenes/gintama.webp",
+      descripcionCorta: "Comedia/sátira histórica-cómica con tono absurdo y parodias frecuentes.",
+      descripcion: "Hideaki Sorachi mezcla samuráis, sci-fi y humor ácido; recopilada en 77 volúmenes, con enorme base de fans y múltiples adaptaciones."
+    },
+    { titulo: "Hell's Paradise: Jigokuraku", precio: 33900, img: "imagenes/hell.webp",
+      descripcionCorta: "Oscura aventura ninja en busca de la inmortalidad en una isla mortal.",
+      descripcion: "De Yūji Kaku, combina acción, horror y dilemas morales; la historia está recopilada en 13 volúmenes y fue adaptada a anime, lo que incrementó la demanda de tomos."
+    },
+    { titulo: "Mashle: Magic and Muscles", precio: 29900, img: "imagenes/poter.webp",
+      descripcionCorta: "Comedia de acción en un mundo mágico protagonizada por un chico que usa musculatura en vez de magia.",
+      descripcion: "Hajime Kōmoto parodia elementos de fantasía escolar con humor físico y batallas; recopilada en múltiples tomos y con buena circulación editorial."
+    },
+    { titulo: "Ao Ashi", precio: 48900, img: "imagenes/fubo.jpeg",
+      descripcionCorta: "Manga deportivo centrado en fútbol juvenil y desarrollo técnico/táctico.",
+      descripcion: "De Yūgo Kobayashi (con concepto de Naohiko Ueno), sigue la evolución futbolística de Ashito Aoi en academias; es un título de gran venta en el mercado de mangas deportivos con decenas de volúmenes recopilados."}
+  ];
+
+
+  const grid = document.getElementById('posterGrid');
+  const floatPanel = document.getElementById('floatPanel');
+  const fpTitle = document.getElementById('fpTitle');
+  const fpShort = document.getElementById('fpShort');
+  const fpVerMas = document.getElementById('fpVerMas');
+  const PANEL_W = 260; // px
+  let hideTimer = null;
+  let currentIndex = null;
+  let expanded = false; // si el panel está mostrando la descripción larga
+
+  posters.forEach((poster, index) => {
+    const card = document.createElement('div');
+    card.className = 'card';
+
+    const img = document.createElement('img'); img.src = poster.img; img.alt = poster.titulo;
+    const h3 = document.createElement('h3'); h3.textContent = poster.titulo;
+    const pPrice = document.createElement('p'); pPrice.className = 'price'; pPrice.textContent = 'Precio: $' + poster.precio;
+
+    const addBtn = document.createElement('button');
+    addBtn.className = 'btn';
+    addBtn.textContent = 'AGREGAR AL CARRITO';
+    addBtn.addEventListener('click', (e) => { e.stopPropagation(); agregarCarrito(poster.titulo); });
+
+    card.appendChild(img);
+    card.appendChild(h3);
+    card.appendChild(pPrice);
+    card.appendChild(addBtn);
+
+    // Hover logic: show floating panel positioned outside the card and above other elements
+    card.addEventListener('mouseenter', (e) => {
+      clearTimeout(hideTimer);
+      currentIndex = index;
+      expanded = false;
+      fpTitle.textContent = poster.titulo;
+      setShortText(poster);
+
+     // set ver mas handler to togglear entre expandir y colapsar
+fpVerMas.onclick = (ev) => {
+  ev.stopPropagation();
+  // si ya está expandido, colapsa; si no, expande
+  if (expanded) {
+    toggleExpand(false);
+  } else {
+    toggleExpand(true);
+  }
+};
+
+
+      // compute position relative to viewport (fixed panel)
+      const rect = card.getBoundingClientRect();
+      const spaceRight = window.innerWidth - rect.right;
+      const spaceLeft = rect.left;
+      let left, top;
+
+      // top relative to viewport: a bit below top of card
+      top = Math.max(8, rect.top + 8);
+
+      if (spaceRight >= PANEL_W + 12) {
+        // place to the right of the card
+        left = rect.right + 12;
+      } else if (spaceLeft >= PANEL_W + 12) {
+        // place to the left
+        left = rect.left - PANEL_W - 12;
+      } else {
+        // centered above/below card
+        left = rect.left + (rect.width - PANEL_W) / 2;
+        left = Math.max(8, Math.min(left, window.innerWidth - PANEL_W - 8));
+        // try above card first
+        top = rect.top - 8 - 140;
+        if (top < 8) top = rect.bottom + 8; // otherwise below
+      }
+
+      // apply position
+      floatPanel.style.left = Math.round(left) + 'px';
+      floatPanel.style.top = Math.round(top) + 'px';
+      floatPanel.classList.add('show');
+      floatPanel.setAttribute('aria-hidden', 'false');
+
+      // After shown, ensure it doesn't overflow bottom: recalc height and shift up if needed
+      requestAnimationFrame(() => {
+        const panelRect = floatPanel.getBoundingClientRect();
+        const overflow = panelRect.bottom - window.innerHeight + 8; // 8px margin
+        if (overflow > 0) {
+          // shift panel up but not above top
+          const newTop = Math.max(8, (parseFloat(floatPanel.style.top) || 0) - overflow);
+          floatPanel.style.top = Math.round(newTop) + 'px';
+        }
+      });
+    });
+
+    // start hide delay when leaving card
+    card.addEventListener('mouseleave', () => {
+      startHideTimer();
+    });
+
+    grid.appendChild(card);
+  });
+
+  // panel mouseenter cancels hide; mouseleave starts hide timer
+  floatPanel.addEventListener('mouseenter', () => { clearTimeout(hideTimer); });
+  floatPanel.addEventListener('mouseleave', () => { startHideTimer(); });
+
+  function setShortText(poster) {
+    const short = poster.descripcionCorta || (poster.descripcion || '').slice(0, 120) + '...';
+    fpShort.textContent = short;
+    fpVerMas.textContent = 'Ver más';
+    expanded = false;
+  }
+
+  function toggleExpand(toExpand) {
+    if (toExpand === undefined) toExpand = !expanded;
+    if (toExpand) {
+      // show full description in the panel
+      if (currentIndex === null) return;
+      fpShort.textContent = posters[currentIndex].descripcion || posters[currentIndex].descripcionCorta || '';
+      fpVerMas.textContent = 'Mostrar menos';
+      expanded = true;
+
+      // ensure panel fully visible after expanding
+      requestAnimationFrame(() => {
+        const panelRect = floatPanel.getBoundingClientRect();
+        const overflow = panelRect.bottom - window.innerHeight + 8;
+        if (overflow > 0) {
+          const newTop = Math.max(8, (parseFloat(floatPanel.style.top) || 0) - overflow);
+          floatPanel.style.top = Math.round(newTop) + 'px';
+        }
+      });
+    } else {
+      // collapse back to short
+      if (currentIndex === null) {
+        hidePanelImmediate();
+        return;
+      }
+      setShortText(posters[currentIndex]);
+    }
+  }
+
+  function startHideTimer(){
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(() => { hidePanelImmediate(); }, 500); // 500ms give user time to move & click
+  }
+  function hidePanelImmediate(){
+    clearTimeout(hideTimer);
+    floatPanel.classList.remove('show');
+    floatPanel.setAttribute('aria-hidden','true');
+    currentIndex = null;
+    expanded = false;
+    // clear inline positions to reset next time
+    floatPanel.style.left = '';
+    floatPanel.style.top = '';
+  }
+
+  // close if clicking anywhere else
+  document.addEventListener('click', (e) => {
+    if (!floatPanel.contains(e.target)) hidePanelImmediate();
+  });
+
+  function agregarCarrito(nombre){ alert(nombre + ' agregado al carrito ✅'); }
+</script>
+</body>
+</html>

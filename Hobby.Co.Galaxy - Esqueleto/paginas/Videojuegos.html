@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HOBI CO.GALAXY - Panel mejorado (expansible)</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #e7dce8; margin: 0; }
+    header { background: #800f78; padding: 20px; text-align: center; }
+    header h1 { color: #ffffff; margin-bottom: 10px; }
+    nav a { color: white; margin: 0 10px; text-decoration: none; font-weight: bold; }
+
+    .grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 20px; padding: 20px; }
+    @media (max-width:1200px){ .grid{ grid-template-columns: repeat(4,1fr);} }
+    @media (max-width:900px){ .grid{ grid-template-columns: repeat(3,1fr);} }
+    @media (max-width:600px){ .grid{ grid-template-columns: repeat(2,1fr);} }
+    @media (max-width:380px){ .grid{ grid-template-columns: 1fr; } }
+
+    .card { position: relative; background: white; border-radius: 20px; box-shadow: 0 8px 12px rgba(0,0,0,0.1); padding: 12px; text-align: center; transition: transform 0.18s ease-in-out; overflow: visible; }
+    .card:hover { transform: translateY(-4px); }
+    .card img { width: 100%; height: 170px; object-fit: cover; border-radius: 8px; }
+    .card h3 { margin: 8px 0 6px; font-size: 15px; }
+    .card p.price { margin: 6px 0 10px; font-weight: bold; }
+
+    /* Botón agregar al carrito siempre encima (clicable) */
+    .btn { background: #800f78; border: none; padding: 8px 10px; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; position: relative; z-index: 6; }
+    .btn:hover { background: #a32994; color: #fff200; }
+
+    /* Floating panel (insertado en body) */
+    .float-panel {
+      position: fixed;
+      width: 260px;
+      max-width: 90vw;
+      background: #ffffff;
+      color: #222;
+      border-radius: 10px;
+      padding: 12px;
+      box-shadow: 0 14px 40px rgba(0,0,0,0.2);
+      z-index: 99999;
+      display: none;
+      pointer-events: auto;
+      transition: opacity 160ms ease, transform 160ms ease;
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    .float-panel.show { display: block; opacity: 1; transform: translateY(0); }
+
+    .float-panel h4 { margin: 0 0 6px 0; font-size: 14px; }
+    .float-panel p { margin: 0 0 8px 0; font-size: 13px; color: #333; line-height: 1.2; max-height: 12em; overflow: auto; }
+    .float-panel .vermas { display: inline-block; background: #800f78; color: #fff; padding: 6px 8px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; }
+    .float-panel .vermas:hover { background: #a32994; }
+
+    /* adjustments for mobile */
+    @media (max-width:600px){ .float-panel{ width: 92%; left: 4% !important; top: auto !important; bottom: 12vh !important; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1><strong>&nbsp; &nbsp; &nbsp;HOBI CO. GALAXY - MANGAS</strong></h1>
+    <nav>
+      <a href="#">INICIO 🏠</a>
+      <a href="#">PELICULAS 🎬</a>
+      <a href="#">JUEGOS 🎮</a>
+      <a href="#">ANIME 🈵️</a>
+      <a href="#">CARRITO 🛒</a>
+    </nav>
+  </header>
+
+  <main>
+    <h2 style="text-align:center; margin:20px 0;">MANGAS</h2>
+    <div class="grid" id="posterGrid"></div>
+  </main>
+
+  <footer>
+    &copy; 2025 Hobi Co. Galaxy - Tienda Geek y Friki
+  </footer>
+
+  <!-- Floating info panel: single element appended to body so it never gets covered by other cards -->
+  <div id="floatPanel" class="float-panel" role="dialog" aria-hidden="true">
+    <h4 id="fpTitle"></h4>
+    <p id="fpShort"></p>
+    <button id="fpVerMas" class="vermas">Ver más</button>
+  </div>
+
+<script>
+  const posters = [
+    { titulo: "Hades II", precio: 139000, img: "imagenes/hades.jpeg",
+      descripcionCorta: "Secuela roguelike de Supergiant centrada en mitología y acción rápida.",
+      descripcion: "Hades II sigue la tradición del Hades original: combate ágil, progresión roguelike y una historia ligada a la mitología griega, ahora con una nueva protagonista (Melinoë) y mejoras técnicas para consolas modernas. Lanzamiento y características están detalladas por Supergiant y fichas oficiales."
+    },
+    { titulo: "Hollow Knight: Silksong", precio: 109000, img: "imagenes/cilantro.webp",
+      descripcionCorta: "Metroidvania independiente, secuela de Hollow Knight, centrada en Hornet.",
+      descripcion: "Silksong amplía el universo de Hollow Knight con nuevos escenarios, enemigos y habilidades de la protagonista Hornet; conserva el diseño artístico y la exploración profunda del original, y salió en múltiples plataformas con gran acogida."
+    },
+    { titulo: "Super Mario Galaxy 2 (Switch 2 Edition)", precio: 249000, img: "imagenes/mario.webp",
+      descripcionCorta: "Clásico de plataformas 3D de Nintendo reeditado para Switch/Switch 2.",
+      descripcion: "Super Mario Galaxy 2 es la aclamada secuela reintroducida como edición modernizada para Switch/Switch 2; mantiene su diseño de niveles gravitacionales y creatividad en plataformas 3D, y figura en los listados de ventas tras su reedición."
+    },
+    { titulo: "Super Mario Galaxy (Switch 2 Edition)", precio: 249000, img: "imagenes/mario.webp",
+      descripcionCorta: "El primer Galaxy, otra reedición popular para la nueva consola Nintendo.",
+      descripcion: "El Galaxy original continúa vendiéndose bien gracias a las reediciones que mejoran su rendimiento en Switch 2; es un referente en diseño de plataformas y suele aparecer entre los best-sellers digitales cuando Nintendo publica reediciones."
+    },
+    { titulo: "Megabonk", precio: 59000, img: "imagenes/bonk.jpg",
+      descripcionCorta: "Roguelike indie viral que explotó en ventas y jugadores en Steam.",
+      descripcion: "Megabonk, desarrollado por un equipo pequeño, se convirtió en un fenómeno viral en Steam: mecánicas tipo 'survive & upgrade', estética nostálgica y partidas rápidas; su ficha de tienda y cobertura mediática documentan su éxito."
+    },
+    { titulo: "Battlefield 6", precio: 249900, img: "imagenes/6.webp",
+      descripcionCorta: "Shooter multijugador AAA de EA con grandes batallas y destrucción ambiental.",
+      descripcion: "Diseñado como nueva entrega principal de la saga Battlefield, ofrece combates a gran escala, vehículos, destrucción del entorno y modos contemporáneos; su lanzamiento y hoja de ruta post-lanzamiento están en la web de EA."
+    },
+    { titulo: "EA SPORTS FC 26", precio: 189000, img: "imagenes/fif.webp",
+      descripcionCorta: "Juego de fútbol anual (rebranding de FIFA) que lidera ventas en varias regiones.",
+      descripcion: "EA SPORTS FC 26 trae las habituales modalidades (MyCAREER/MyTEAM, Manager, etc.), mejoras de gameplay y versiones adaptadas a consolas nuevas; EA publica notas de lanzamiento y actualizaciones que respaldan su presencia entre los más vendidos."
+    },
+    { titulo: "NBA 2K26", precio: 179000, img: "imagenes/26.webp",
+      descripcionCorta: "Simulador de baloncesto con modos competitivos y de carrera muy populares.",
+      descripcion: "NBA 2K26 mantiene MyCAREER, MyTEAM y experiencias competitivas con mejoras gráficas y de jugabilidad para consolas de nueva generación; las tiendas lo muestran entre los títulos más descargados por regiones."
+    },
+    { titulo: "Borderlands 4", precio: 229000, img: "imagenes/bor.jpg",
+      descripcionCorta: "Looter-shooter con humor, cientos de armas y co-op — nueva entrega de la saga.",
+      descripcion: "Borderlands 4 extiende la fórmula looter-shooter en un nuevo escenario, presenta clases de 'Vault Hunters', árboles de habilidades y toneladas de loot procedimental; 2K y la web oficial describen contenido y fecha de lanzamiento y rendimiento comercial."
+    },
+    { titulo: "Counter-Strike 2", precio: 0, img: "imagenes/2.jpg",
+      descripcionCorta: "Shooter táctico competitivo (remaster/actualización de CS:GO) con gran base de jugadores.",
+      descripcion: "CS2 es la evolución técnica de CS:GO con engine renovado y mejoras técnicas; sigue siendo uno de los títulos más jugados en PC. Es free-to-play, pero mantiene una economía de ítems dentro del juego."
+    },
+    { titulo: "Digimon Story: Time Stranger", precio: 169000, img: "imagenes/dig.webp",
+      descripcionCorta: "RPG de 'monster-taming' tipo Digimon Story con lanzamiento 2025 muy exitoso.",
+      descripcion: "Desarrollado por Media.Vision y publicado por Bandai Namco, Time Stranger combina exploración, recolección y combates por turnos entre Digimon; su lanzamiento en 2025 logró picos de jugadores y buenas reseñas."
+    },
+    { titulo: "Monster Hunter Wilds", precio: 219000, img: "imagenes/mos.webp",
+      descripcionCorta: "Nueva entrega de Monster Hunter (2025) con recepción comercial masiva.",
+      descripcion: "Monster Hunter Wilds renovó sistemas de caza y mundo abierto para la saga; Capcom reportó ventas de millones de unidades poco después del lanzamiento y comunicados oficiales explican el enfoque y cifras."
+    },
+    { titulo: "Grand Theft Auto V (GTA V)", precio: 119000, img: "imagenes/5.jpg",
+      descripcionCorta: "Sandbox criminal y plataforma persistente (GTA Online) que sigue vendiéndose mucho.",
+      descripcion: "A pesar de ser anterior, GTA V mantiene enormes ventas gracias a GTA Online y reediciones para PS5/Xbox Series; Rockstar sigue promocionando versiones mejoradas y bundles en su tienda."
+    },
+    { titulo: "Forza Horizon 5", precio: 129000, img: "imagenes/h5.jpg",
+      descripcionCorta: "Arcade de conducción open world ambientado en México, con contenido continuo.",
+      descripcion: "Forza Horizon 5 ofrece un vasto mapa, cientos de coches, eventos estacionales y soporte via Game Pass y actualizaciones frecuentes; su ficha oficial explica por qué sigue en los top sellers."
+    },
+    { titulo: "Hogwarts Legacy", precio: 149000, img: "imagenes/how.webp",
+      descripcionCorta: "RPG de mundo abierto ambientado en el universo de Harry Potter (siglo XIX).",
+      descripcion: "Hogwarts Legacy es un RPG de acción y exploración que coloca al jugador en un estudiante con libertad para explorar el castillo, clases y misiones; su popularidad se mantiene gracias a reediciones en plataformas."
+    },
+    { titulo: "Call of Duty: Black Ops 6", precio: 219000, img: "imagenes/zom.webp",
+      descripcionCorta: "Entrega anual de CoD centrada en campaña cinematográfica y multijugador.",
+      descripcion: "Black Ops 6 incluye campaña, multijugador y modo Zombies; Activision mantiene páginas oficiales y soporte post-lanzamiento con ediciones y promociones recientes que impulsan ventas."
+    },
+    { titulo: "Assassin’s Creed: Shadows", precio: 199000, img: "imagenes/sha.webp",
+      descripcionCorta: "Nueva entrega histórica de Assassin’s Creed ambientada en Japón (Sengoku).",
+      descripcion: "Shadows propone una narrativa dual entre shinobi y samurái en el Japón feudal, mezclando sigilo y acción; Ubisoft y la ficha oficial detallan protagonistas, mundo y contenido."
+    },
+    { titulo: "Dying Light: The Beast", precio: 129000, img: "imagenes/dy.webp",
+      descripcionCorta: "Nueva entrega centrada en parkour y hordas de zombis.",
+      descripcion: "The Beast enfatiza combate cuerpo a cuerpo, movilidad y mundo abierto; Techland compartió métricas de uso y la ficha en Steam muestra su posicionamiento entre los más comprados."
+    },
+    { titulo: "SILENT HILL ƒ", precio: 199000, img: "imagenes/F.webp",
+      descripcionCorta: "Nueva entrada de la saga Silent Hill con enfoque psicológico.",
+      descripcion: "SILENT HILL ƒ reinventa la saga con atmósfera de horror psicológico y ambientación en Japón; Konami y fichas oficiales describen tono y lanzamiento, que recibió alta demanda el día de salida."
+    },
+    { titulo: "Minecraft", precio: 89900, img: "imagenes/mine.jpg",
+      descripcionCorta: "Sandbox de construcción y supervivencia, evergreen en ventas digitales y físicas.",
+      descripcion: "Minecraft sigue siendo de los productos más comprados gracias a sus ediciones Java/Bedrock, marketplace y soporte educativo; la web oficial documenta ediciones y bundles que lo mantienen como best-seller."
+    },
+    { titulo: "Stardew Valley", precio: 59900, img: "imagenes/val.png",
+      descripcionCorta: "Simulador agrícola indie con gran comunidad y soporte continuo.",
+      descripcion: "Stardew Valley continúa vendiéndose por sus mecánicas de farming, crafting y vida social; el creador y la web oficial siguen actualizando el juego y lanzando versiones para consolas nuevas."
+    },
+    { titulo: "Terraria", precio: 69900, img: "imagenes/ter.jpg",
+      descripcionCorta: "Aventura 2D de exploración, construcción y combate con base de fans duradera.",
+      descripcion: "Terraria ofrece crafting, jefes y biomas que han mantenido ventas constantes; las ediciones y bundles documentados en tiendas lo mantienen en los listados de los más vendidos."
+    },
+    { titulo: "Hollow Knight (original)", precio: 59900, img: "imagenes/feo.webp",
+      descripcionCorta: "Metroidvania indie de culto que sigue vendiéndose a buen ritmo.",
+      descripcion: "El Hollow Knight original conserva su popularidad por su diseño, banda sonora y exploración interconectada; la presencia de Silksong reaviva ventas del título base en consolas y PC."
+    },
+    { titulo: "Elden Ring + Shadow of the Erdtree", precio: 179000, img: "imagenes/rin.webp",
+      descripcionCorta: "RPG de acción de FromSoftware con expansión de alto rendimiento comercial.",
+      descripcion: "Elden Ring reinventó el género con mundo abierto y combate desafiante; la expansión Shadow of the Erdtree añadió zonas y bosses que han registrado cifras de venta muy altas para DLC."
+    },
+    { titulo: "The Legend of Zelda: Tears of the Kingdom", precio: 249000, img: "imagenes/lin.jpg",
+      descripcionCorta: "Aventura/acción en mundo abierto, secuela espiritual de Breath of the Wild.",
+      descripcion: "Tears of the Kingdom amplía la exploración con zonas flotantes y subterráneas; sus reediciones y ediciones Switch 2 devolvieron ventas significativas a la saga."
+    },
+    { titulo: "Marvel’s Spider-Man 2", precio: 179000, img: "imagenes/spit.jpg",
+      descripcionCorta: "Aventura de superhéroes (Peter Parker y Miles Morales) con combate ágil y narrativa.",
+      descripcion: "Insomniac creó una secuela cargada de movimientos, set pieces y una historia centrada en los personajes; la versión PS5 y el puerto a PC mantuvieron el título en listas de ventas."
+    },
+    { titulo: "Alan Wake 2", precio: 129000, img: "imagenes/222.jpeg",
+      descripcionCorta: "Survival horror psicológico por Remedy que combina narrativa y atmósfera densa.",
+      descripcion: "Alan Wake 2 construye una historia de terror moderno con dos protagonistas en realidades distintas, diseño narrativo fuerte y estética oscura; las tiendas documentan ediciones y expansiones."
+    },
+    { titulo: "Baldur’s Gate 3", precio: 219000, img: "imagenes/gate.jpg",
+      descripcionCorta: "RPG de alta calidad basado en D&D con fuerte componente narrativo y de decisiones.",
+      descripcion: "Larian Studios ofrece un RPG profundo con opciones de roleo, decisiones que cambian el mundo y soporte continuo; el juego suele figurar entre los más vendidos en PC y consolas."
+    },
+    { titulo: "Palworld", precio: 109000, img: "imagenes/paw.jpg",
+      descripcionCorta: "Survival/monster-taming con crafting y multijugador que fue super-ventas indie.",
+      descripcion: "Palworld mezcla captura de criaturas, construcción base y mecánicas survival; las cifras de ventas tras su lanzamiento muestran que alcanzó millones de copias y se mantuvo muy comprado durante 2024–2025."
+    },
+    { titulo: "Digimon Story: Time Stranger (ed. adicional)", precio: 169000, img: "imagenes/digin.jpg",
+      descripcionCorta: "RPG de Digimon con retorno fuerte en ventas y críticas.",
+      descripcion: "Versión adicional/repetida para reflejar su impacto en PC/Steam y consolas; ver la ficha de lanzamiento y recepción en 2025 para detalles de contenido y críticas."
+    }
+  ];
+
+
+  const grid = document.getElementById('posterGrid');
+  const floatPanel = document.getElementById('floatPanel');
+  const fpTitle = document.getElementById('fpTitle');
+  const fpShort = document.getElementById('fpShort');
+  const fpVerMas = document.getElementById('fpVerMas');
+  const PANEL_W = 260; // px
+  let hideTimer = null;
+  let currentIndex = null;
+  let expanded = false; // si el panel está mostrando la descripción larga
+
+  posters.forEach((poster, index) => {
+    const card = document.createElement('div');
+    card.className = 'card';
+
+    const img = document.createElement('img'); img.src = poster.img; img.alt = poster.titulo;
+    const h3 = document.createElement('h3'); h3.textContent = poster.titulo;
+    const pPrice = document.createElement('p'); pPrice.className = 'price'; pPrice.textContent = 'Precio: $' + poster.precio;
+
+    const addBtn = document.createElement('button');
+    addBtn.className = 'btn';
+    addBtn.textContent = 'AGREGAR AL CARRITO';
+    addBtn.addEventListener('click', (e) => { e.stopPropagation(); agregarCarrito(poster.titulo); });
+
+    card.appendChild(img);
+    card.appendChild(h3);
+    card.appendChild(pPrice);
+    card.appendChild(addBtn);
+
+    // Hover logic: show floating panel positioned outside the card and above other elements
+    card.addEventListener('mouseenter', (e) => {
+      clearTimeout(hideTimer);
+      currentIndex = index;
+      expanded = false;
+      fpTitle.textContent = poster.titulo;
+      setShortText(poster);
+
+     // set ver mas handler to togglear entre expandir y colapsar
+fpVerMas.onclick = (ev) => {
+  ev.stopPropagation();
+  // si ya está expandido, colapsa; si no, expande
+  if (expanded) {
+    toggleExpand(false);
+  } else {
+    toggleExpand(true);
+  }
+};
+
+
+      // compute position relative to viewport (fixed panel)
+      const rect = card.getBoundingClientRect();
+      const spaceRight = window.innerWidth - rect.right;
+      const spaceLeft = rect.left;
+      let left, top;
+
+      // top relative to viewport: a bit below top of card
+      top = Math.max(8, rect.top + 8);
+
+      if (spaceRight >= PANEL_W + 12) {
+        // place to the right of the card
+        left = rect.right + 12;
+      } else if (spaceLeft >= PANEL_W + 12) {
+        // place to the left
+        left = rect.left - PANEL_W - 12;
+      } else {
+        // centered above/below card
+        left = rect.left + (rect.width - PANEL_W) / 2;
+        left = Math.max(8, Math.min(left, window.innerWidth - PANEL_W - 8));
+        // try above card first
+        top = rect.top - 8 - 140;
+        if (top < 8) top = rect.bottom + 8; // otherwise below
+      }
+
+      // apply position
+      floatPanel.style.left = Math.round(left) + 'px';
+      floatPanel.style.top = Math.round(top) + 'px';
+      floatPanel.classList.add('show');
+      floatPanel.setAttribute('aria-hidden', 'false');
+
+      // After shown, ensure it doesn't overflow bottom: recalc height and shift up if needed
+      requestAnimationFrame(() => {
+        const panelRect = floatPanel.getBoundingClientRect();
+        const overflow = panelRect.bottom - window.innerHeight + 8; // 8px margin
+        if (overflow > 0) {
+          // shift panel up but not above top
+          const newTop = Math.max(8, (parseFloat(floatPanel.style.top) || 0) - overflow);
+          floatPanel.style.top = Math.round(newTop) + 'px';
+        }
+      });
+    });
+
+    // start hide delay when leaving card
+    card.addEventListener('mouseleave', () => {
+      startHideTimer();
+    });
+
+    grid.appendChild(card);
+  });
+
+  // panel mouseenter cancels hide; mouseleave starts hide timer
+  floatPanel.addEventListener('mouseenter', () => { clearTimeout(hideTimer); });
+  floatPanel.addEventListener('mouseleave', () => { startHideTimer(); });
+
+  function setShortText(poster) {
+    const short = poster.descripcionCorta || (poster.descripcion || '').slice(0, 120) + '...';
+    fpShort.textContent = short;
+    fpVerMas.textContent = 'Ver más';
+    expanded = false;
+  }
+
+  function toggleExpand(toExpand) {
+    if (toExpand === undefined) toExpand = !expanded;
+    if (toExpand) {
+      // show full description in the panel
+      if (currentIndex === null) return;
+      fpShort.textContent = posters[currentIndex].descripcion || posters[currentIndex].descripcionCorta || '';
+      fpVerMas.textContent = 'Mostrar menos';
+      expanded = true;
+
+      // ensure panel fully visible after expanding
+      requestAnimationFrame(() => {
+        const panelRect = floatPanel.getBoundingClientRect();
+        const overflow = panelRect.bottom - window.innerHeight + 8;
+        if (overflow > 0) {
+          const newTop = Math.max(8, (parseFloat(floatPanel.style.top) || 0) - overflow);
+          floatPanel.style.top = Math.round(newTop) + 'px';
+        }
+      });
+    } else {
+      // collapse back to short
+      if (currentIndex === null) {
+        hidePanelImmediate();
+        return;
+      }
+      setShortText(posters[currentIndex]);
+    }
+  }
+
+  function startHideTimer(){
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(() => { hidePanelImmediate(); }, 500); // 500ms give user time to move & click
+  }
+  function hidePanelImmediate(){
+    clearTimeout(hideTimer);
+    floatPanel.classList.remove('show');
+    floatPanel.setAttribute('aria-hidden','true');
+    currentIndex = null;
+    expanded = false;
+    // clear inline positions to reset next time
+    floatPanel.style.left = '';
+    floatPanel.style.top = '';
+  }
+
+  // close if clicking anywhere else
+  document.addEventListener('click', (e) => {
+    if (!floatPanel.contains(e.target)) hidePanelImmediate();
+  });
+
+  function agregarCarrito(nombre){ alert(nombre + ' agregado al carrito ✅'); }
+</script>
+</body>
+</html>

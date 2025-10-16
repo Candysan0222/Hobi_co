@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HOBI CO.GALAXY-ARTESANIAS</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #e7dce8; margin: 0; }
+    header { background: #800f78; padding: 20px; text-align: center; }
+    header h1 { color: #ffffff; margin-bottom: 10px; }
+    nav a { color: white; margin: 0 10px; text-decoration: none; font-weight: bold; }
+    nav a:hover { color: #fff200; }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; padding: 20px; }
+
+    .card {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 8px 12px rgba(0,0,0,0.1);
+      padding: 18px;
+      text-align: center;
+      transition: transform 0.2s ease-in-out;
+    }
+    .card:hover { transform: scale(1.05); }
+
+    .image-container {
+      position: relative;
+      overflow: hidden;
+      border-radius: 10px;
+    }
+
+    .card img {
+      width: 100%;
+      height: 395px;
+      object-fit: cover;
+      border-radius: 10px;
+    }
+
+    .info-hover {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(128, 15, 120, 0.9);
+      color: white;
+      padding: 10px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .image-container:hover .info-hover {
+      opacity: 1;
+    }
+
+    .btn, .btn-vermas {
+      background: #800f78;
+      border: none;
+      padding: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      color: white;
+      margin-top: 10px;
+    }
+
+    .btn:hover, .btn-vermas:hover {
+      background: #a32994;
+      color: #fff200;
+    }
+
+    footer {
+      background: #800f78;
+      color: white;
+      text-align: center;
+      padding: 15px;
+      margin-top: 30px;
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 10;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    .close {
+      float: right;
+      font-size: 20px;
+      cursor: pointer;
+      color: #800f78;
+    }
+
+    .close:hover { color: #ff0000; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1><strong>HOBI CO. GALAXY - ARTESANIAS</strong></h1>
+    <nav>
+      <a href="../index.html">INICIO 🏠</a>
+      <a href="#">PELICULAS 🎬</a>
+      <a href="#">JUEGOS 🎮</a>
+      <a href="#">ANIME 🈵️</a>
+      <a href="#">CARRITO 🛒</a>
+    </nav>
+  </header>
+
+  <main>
+    <h2 style="text-align:center; margin:20px 0;">ARTESANIAS DESTACADAS</h2>
+    <div class="grid" id="posterGrid"></div>
+  </main>
+
+  <footer>
+    &copy; 2025 Hobi Co. Galaxy - Tienda Geek y Artesanías
+  </footer>
+
+  <!-- Modal -->
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="cerrarModal()">&times;</span>
+      <h3 id="modalTitulo"></h3>
+      <p id="modalDescripcion"></p>
+    </div>
+  </div>
+
+  <script>
+    const posters = [
+      {titulo: "Matera De Totoro", precio: 20000, img: "../imagenes/artesanias/toto.jpg", descBreve: "Matera decorativa inspirada en Totoro.", descCompleta: "Hermosa matera hecha a mano en cerámica ecológica con diseño de Totoro, ideal para plantas pequeñas."},
+      {titulo: "Goku Hecho a Mano", precio: 150000, img: "../imagenes/artesanias/goku.jpg", descBreve: "Figura artesanal de Goku.", descCompleta: "Figura detallada en porcelanicrón pintada a mano, representando a Goku en pose de batalla."},
+      {titulo: "Saitama Hecho a Mano", precio: 29000, img: "../imagenes/artesanias/saitama.jpeg", descBreve: "Figura artesanal de Saitama.", descCompleta: "Representación del héroe más fuerte del anime One Punch Man, elaborada en plastilina endurecida."},
+      {titulo: "Spiderman De Papel", precio: 34000, img: "../imagenes/artesanias/spidi.jpg", descBreve: "Figura de Spiderman hecha en papel.", descCompleta: "Hecha con técnica de papercraft resistente, perfecta para fans de Marvel."},
+      {titulo: "Pintura De Snoopy", precio: 32000, img: "../imagenes/artesanias/snopy.jpg", descBreve: "Cuadro pintado a mano de Snoopy.", descCompleta: "Pintura acrílica sobre lienzo con acabados brillantes y colores vivos."},
+      {titulo: "Vegetta Hecho a Mano", precio: 33000, img: "../imagenes/artesanias/vege.jpg", descBreve: "Figura artesanal de Vegetta.", descCompleta: "Creación en porcelanicrón de Vegetta, con detalles minuciosos de armadura y expresión."},
+      {titulo: "Pikachu De Papel", precio: 31000, img: "../imagenes/artesanias/pika.jpg", descBreve: "Figura de Pikachu en papel.", descCompleta: "Papercraft colorido y resistente, ideal para decoración o colección Pokémon."},
+      {titulo: "Shadow De Papel", precio: 30000, img: "../imagenes/artesanias/sonic.jpg", descBreve: "Figura de Shadow de Sonic.", descCompleta: "Modelo en papel de Shadow, con diseño 3D detallado."},
+      {titulo: "Llavero De Gengar", precio: 31000, img: "../imagenes/artesanias/gengar.jpg", descBreve: "Llavero artesanal de Gengar.", descCompleta: "Hecho a mano con materiales duraderos, ideal para mochilas o llaves."},
+      {titulo: "Figura De Naruto", precio: 32000, img: "../imagenes/artesanias/naruto.jpeg", descBreve: "Figura artesanal de Naruto.", descCompleta: "Figura hecha a mano con pintura detallada, representando al protagonista de Naruto Shippuden."},
+      {titulo: "Toad en Hama Beads", precio: 29000, img: "../imagenes/artesanias/toad.jpg", descBreve: "Toad hecho en Hama Beads.", descCompleta: "Figura pixelada con cuentas de colores, ideal para decorar tu espacio gamer."},
+      {titulo: "Messi Hecho a Mano", precio: 35000, img: "../imagenes/artesanias/leo.jpg", descBreve: "Figura artesanal de Messi.", descCompleta: "Figura del futbolista Lionel Messi hecha a mano con acabados detallados."},
+      {titulo: "Cuadro Spiderman", precio: 33000, img: "../imagenes/artesanias/cuadro.jpg", descBreve: "Cuadro artesanal de Spiderman.", descCompleta: "Hecho en lienzo con pintura acrílica y fondo urbano."},
+      {titulo: "Majin Buu Hama Beads", precio: 31000, img: "../imagenes/artesanias/buu.jpg", descBreve: "Majin Buu hecho en Hama Beads.", descCompleta: "Figura pixelada del clásico personaje de Dragon Ball Z."},
+      {titulo: "Enderman De Papel", precio: 31000, img: "../imagenes/artesanias/ender.jpg", descBreve: "Figura de Enderman.", descCompleta: "Modelo de Minecraft hecho con papercraft y cartulina de alta calidad."},
+      {titulo: "Jolteon De Papel", precio: 30000, img: "../imagenes/artesanias/gg.jpg", descBreve: "Figura de Jolteon artesanal.", descCompleta: "Papercraft con diseño Pokémon, colores brillantes y acabado limpio."},
+      {titulo: "Wall-E De Cartón", precio: 28000, img: "../imagenes/artesanias/xd.jpg", descBreve: "Mini figura de Wall-E.", descCompleta: "Figura ecológica hecha con cartón reciclado, pintada a mano."},
+      {titulo: "Gary Portalápices", precio: 27000, img: "../imagenes/artesanias/gary.jpg", descBreve: "Portalápices de Gary.", descCompleta: "Hecho en plastilina endurecida, ideal para escritorios infantiles."},
+      {titulo: "Matera De Odish", precio: 26000, img: "../imagenes/artesanias/odish.jpg", descBreve: "Matera de Odish Pokémon.", descCompleta: "Decoración artesanal para plantas, hecha en cerámica."},
+      {titulo: "Batman Hecho a Mano", precio: 31000, img: "../imagenes/artesanias/bat.jpg", descBreve: "Figura artesanal de Batman.", descCompleta: "Escultura pequeña del Caballero de la Noche, elaborada en porcelanicrón."},
+      {titulo: "Cuadro De Chimuelo", precio: 32000, img: "../imagenes/artesanias/chi.jpg", descBreve: "Cuadro artesanal de Chimuelo.", descCompleta: "Pintura de Chimuelo en acrílico sobre madera."},
+      {titulo: "Tapete De F1", precio: 30000, img: "../imagenes/artesanias/f1.jpg", descBreve: "Tapete artesanal de F1.", descCompleta: "Tapete tejido a mano con diseño de Fórmula 1 y materiales resistentes."},
+      {titulo: "Master Chief Hecho a Mano", precio: 29000, img: "../imagenes/artesanias/che.jpg", descBreve: "Figura de Master Chief.", descCompleta: "Figura hecha con materiales reciclados inspirada en Halo."},
+      {titulo: "Llavero Toy Bonnie", precio: 28000, img: "../imagenes/artesanias/bo.jpg", descBreve: "Llavero de Toy Bonnie.", descCompleta: "Llavero elaborado en fieltro con diseño de Five Nights at Freddy’s."},
+      {titulo: "Alcancía De Harry Potter", precio: 30000, img: "../imagenes/artesanias/poter.jpg", descBreve: "Alcancía artesanal de Harry Potter.", descCompleta: "Hecha en yeso pintado a mano, ideal para fanáticos de la saga."},
+      {titulo: "Tapete De Pokémon", precio: 27000, img: "../imagenes/artesanias/pokem.jpg", descBreve: "Tapete tejido con temática Pokémon.", descCompleta: "Creado con hilo resistente, ideal para decoración gamer."},
+      {titulo: "Peluches Del Chavo", precio: 34000, img: "../imagenes/artesanias/chavo.jpg", descBreve: "Peluches artesanales del Chavo del 8.", descCompleta: "Confeccionados a mano con telas suaves, personajes clásicos."},
+      {titulo: "Flor De Minecraft", precio: 28000, img: "../imagenes/artesanias/flor.jpg", descBreve: "Flor de Minecraft artesanal.", descCompleta: "Hecha a mano con plastilina endurecida, ideal para fans del juego."},
+      {titulo: "Barco De Luffy", precio: 29000, img: "../imagenes/artesanias/barco.jpg", descBreve: "Barco de Luffy en Hama Beads.", descCompleta: "Figura pixelada del Going Merry, con gran detalle y color."},
+      {titulo: "Hollow Knight", precio: 27000, img: "../imagenes/artesanias/a.jpg", descBreve: "Figura de Hollow Knight.", descCompleta: "Hecha en plastilina endurecida, pintada a mano con gran detalle artístico."}
+    ];
+
+    const grid = document.getElementById("posterGrid");
+
+    posters.forEach(poster => {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <div class="image-container">
+          <img src="${poster.img}" alt="${poster.titulo}">
+          <div class="info-hover">
+            <p>${poster.descBreve}</p>
+            <button class="btn-vermas" onclick="verMas('${poster.titulo}')">Ver más</button>
+          </div>
+        </div>
+        <h3>${poster.titulo}</h3>
+        <p>Precio: $${poster.precio}</p>
+        <button class="btn" onclick="agregarCarrito('${poster.titulo}')">AGREGAR AL CARRITO</button>
+      `;
+      grid.appendChild(card);
+    });
+
+    function agregarCarrito(nombre) {
+      alert(nombre + " agregado al carrito ✅");
+    }
+
+    function verMas(titulo) {
+      const producto = posters.find(p => p.titulo === titulo);
+      document.getElementById("modalTitulo").innerText = producto.titulo;
+      document.getElementById("modalDescripcion").innerText = producto.descCompleta;
+      document.getElementById("modal").style.display = "flex";
+    }
+
+    function cerrarModal() {
+      document.getElementById("modal").style.display = "none";
+    }
+
+    window.onclick = function(e) {
+      const modal = document.getElementById("modal");
+      if (e.target === modal) modal.style.display = "none";
+    }
+  </script>
+</body>
+</html>
